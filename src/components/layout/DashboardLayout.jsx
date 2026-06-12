@@ -24,7 +24,6 @@ const sellerNav = [
   { to: "/seller/onboarding", label: "Apply", icon: Store, approvedOnly: false, hideWhenApproved: true },
   { to: "/seller/profile", label: "Profile", icon: User, approvedOnly: false },
   { to: "/seller/products", label: "Products", icon: Package, approvedOnly: true },
-  { to: "/seller/categories", label: "Categories", icon: FolderTree, approvedOnly: true },
   { to: "/seller/orders", label: "Orders", icon: ShoppingCart, approvedOnly: true },
 ];
 

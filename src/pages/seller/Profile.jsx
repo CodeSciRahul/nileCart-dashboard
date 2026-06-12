@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { getMySellerProfile, updateMySellerProfile } from "@/services/sellerService.js";
+import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
+import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { normalizeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { toast } from "sonner";
@@ -44,8 +47,8 @@ function ProfileForm() {
     storeName: "",
     description: "",
     tinNumber: "",
-    logo: "",
-    banner: "",
+    logo: null,
+    banner: null,
   });
 
   useEffect(() => {
@@ -54,8 +57,8 @@ function ProfileForm() {
         storeName: seller.storeName || "",
         description: seller.description || "",
         tinNumber: seller.tinNumber || "",
-        logo: seller.logo || "",
-        banner: seller.banner || "",
+        logo: normalizeStoredImage(seller.logo),
+        banner: normalizeStoredImage(seller.banner),
       });
     }
   }, [seller]);
@@ -129,14 +132,18 @@ function ProfileForm() {
                   <Input value={form.tinNumber} onChange={set("tinNumber")} />
                 </div>
               )}
-              <div className="space-y-1">
-                <Label>Logo URL</Label>
-                <Input value={form.logo} onChange={set("logo")} />
-              </div>
-              <div className="space-y-1">
-                <Label>Banner URL</Label>
-                <Input value={form.banner} onChange={set("banner")} />
-              </div>
+              <ImageUpload
+                label="Store logo"
+                folder={UPLOAD_FOLDERS.STORE_LOGOS}
+                value={form.logo}
+                onChange={(logo) => setForm((f) => ({ ...f, logo }))}
+              />
+              <ImageUpload
+                label="Store banner"
+                folder={UPLOAD_FOLDERS.STORE_BANNERS}
+                value={form.banner}
+                onChange={(banner) => setForm((f) => ({ ...f, banner }))}
+              />
               <Button type="submit" disabled={mutation.isPending}>
                 Save changes
               </Button>

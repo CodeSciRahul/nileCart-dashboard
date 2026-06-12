@@ -1,9 +1,4 @@
 import { apiClient } from "../lib/api.js";
 
-export const getCategories = () => apiClient.get("/categories");
-
-export const createCategory = (payload) => apiClient.post("/categories", payload);
-
-export const updateCategory = (id, payload) => apiClient.put(`/categories/${id}`, payload);
-
-export const deleteCategory = (id) => apiClient.delete(`/categories/${id}`);
+/** Read-only category list for sellers (product forms, storefront). */
+export const getCategories = (params) => apiClient.get("/categories", { params });

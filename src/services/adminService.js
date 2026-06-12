@@ -43,7 +43,8 @@ export const toggleBannerStatus = (id, payload) =>
 
 export const deleteBanner = (id) => apiClient.delete(`/admin/banners/${id}`);
 
-export const listAdminCategories = () => apiClient.get("/admin/categories");
+export const listAdminCategories = (params) =>
+  apiClient.get("/admin/categories", { params });
 
 export const createAdminCategory = (payload) =>
   apiClient.post("/admin/categories", payload);

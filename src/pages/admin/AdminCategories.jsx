@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout.jsx";
 import { ProtectedRoute } from "@/components/ProtectedRoute.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
+import { Select } from "@/components/ui/table.jsx";
 import {
   Table,
   TableBody,
@@ -21,54 +22,145 @@ import {
   updateAdminCategory,
   deleteAdminCategory,
 } from "@/services/adminService.js";
+import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
+import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { normalizeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
+const emptyForm = {
+  name: "",
+  image: null,
+  description: "",
+  parent: "",
+  displayOrder: 0,
+  showInNav: true,
+};
+
+const flattenTree = (nodes, depth = 0) =>
+  (nodes || []).flatMap((node) => [
+    { ...node, depth },
+    ...flattenTree(node.children, depth + 1),
+  ]);
+
 function AdminCategoriesPage() {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ name: "", image: "", description: "" });
+  const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.admin.categories,
-    queryFn: listAdminCategories,
+    queryFn: () => listAdminCategories({ tree: "true" }),
   });
+
+  const invalidateCategories = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.admin.categories });
+    queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+  };
 
   const saveMutation = useMutation({
     mutationFn: (payload) =>
       editId ? updateAdminCategory(editId, payload) : createAdminCategory(payload),
     onSuccess: () => {
       toast.success(editId ? "Category updated" : "Category created");
-      setForm({ name: "", image: "", description: "" });
+      setForm(emptyForm);
       setEditId(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.categories });
+      invalidateCategories();
     },
+    onError: (err) => toast.error(err.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteAdminCategory,
     onSuccess: () => {
       toast.success("Category deactivated");
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.categories });
+      invalidateCategories();
     },
+    onError: (err) => toast.error(err.message),
   });
 
-  const categories = data?.categories || [];
+  const categoryTree = data?.categories || [];
+  const flatCategories = useMemo(() => flattenTree(categoryTree), [categoryTree]);
+
+  const parentOptions = useMemo(
+    () => flatCategories.filter((cat) => !cat.parent && cat._id !== editId),
+    [flatCategories, editId]
+  );
+
+  const resetForm = () => {
+    setEditId(null);
+    setForm(emptyForm);
+  };
+
+  const openCreateSubcategory = (parentId) => {
+    setEditId(null);
+    setForm({ ...emptyForm, parent: parentId });
+  };
+
+  const openEdit = (cat) => {
+    setEditId(cat._id);
+    setForm({
+      name: cat.name,
+      image: normalizeStoredImage(cat.image),
+      description: cat.description || "",
+      parent: cat.parent?._id || cat.parent || "",
+      displayOrder: cat.displayOrder ?? 0,
+      showInNav: cat.showInNav ?? true,
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate({
+      name: form.name,
+      image: form.image || undefined,
+      description: form.description || undefined,
+      parent: form.parent || null,
+      displayOrder: Number(form.displayOrder) || 0,
+      showInNav: form.showInNav,
+    });
+  };
 
   return (
     <DashboardLayout title="Categories" variant="admin">
+      <p className="text-muted-foreground mb-6 max-w-2xl text-sm">
+        Build a two-level catalog: top-level categories (e.g. Topwear, Footwear) and subcategories
+        under them (e.g. T-Shirts, Casual Shoes). Sellers assign products to categories from this
+        catalog.
+      </p>
+
       <Card className="mb-6 max-w-xl">
         <CardHeader>
-          <CardTitle>{editId ? "Edit category" : "Create category"}</CardTitle>
+          <CardTitle>
+            {editId
+              ? "Edit category"
+              : form.parent
+                ? "Create subcategory"
+                : "Create category"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              saveMutation.mutate(form);
-            }}
-            className="space-y-3"
-          >
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1">
+              <Label>Parent category</Label>
+              <Select
+                value={form.parent}
+                onChange={(e) => setForm((f) => ({ ...f, parent: e.target.value }))}
+                disabled={Boolean(
+                  editId && flatCategories.find((c) => c._id === editId)?.children?.length
+                )}
+              >
+                <option value="">None (top-level category)</option>
+                {parentOptions.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-muted-foreground text-xs">
+                Leave empty for a top-level group. Select a parent to create a subcategory.
+              </p>
+            </div>
             <div className="space-y-1">
               <Label>Name</Label>
               <Input
@@ -77,16 +169,45 @@ function AdminCategoriesPage() {
                 required
               />
             </div>
+            <ImageUpload
+              label="Category image"
+              folder={UPLOAD_FOLDERS.CATEGORIES}
+              value={form.image}
+              onChange={(image) => setForm((f) => ({ ...f, image }))}
+            />
             <div className="space-y-1">
-              <Label>Image URL</Label>
+              <Label>Description</Label>
               <Input
-                value={form.image}
-                onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               />
             </div>
-            <Button type="submit" disabled={saveMutation.isPending}>
-              {editId ? "Update" : "Create"}
-            </Button>
+            <div className="space-y-1">
+              <Label>Display order</Label>
+              <Input
+                type="number"
+                value={form.displayOrder}
+                onChange={(e) => setForm((f) => ({ ...f, displayOrder: e.target.value }))}
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.showInNav}
+                onChange={(e) => setForm((f) => ({ ...f, showInNav: e.target.checked }))}
+              />
+              Show in navigation
+            </label>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={saveMutation.isPending}>
+                {editId ? "Update" : "Create"}
+              </Button>
+              {(editId || form.parent) && (
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancel
+                </Button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -98,34 +219,53 @@ function AdminCategoriesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Slug</TableHead>
+              <TableHead>Order</TableHead>
+              <TableHead>Nav</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.map((cat) => (
+            {flatCategories.map((cat) => (
               <TableRow key={cat._id}>
-                <TableCell>{cat.name}</TableCell>
+                <TableCell>
+                  <span style={{ paddingLeft: `${cat.depth * 20}px` }} className="inline-flex items-center gap-2">
+                    {cat.depth > 0 && (
+                      <span className="text-muted-foreground text-xs">└</span>
+                    )}
+                    <span className={cat.depth === 0 ? "font-medium" : ""}>{cat.name}</span>
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={cat.depth === 0 ? "default" : "secondary"}>
+                    {cat.depth === 0 ? "Parent" : "Subcategory"}
+                  </Badge>
+                </TableCell>
                 <TableCell>{cat.slug}</TableCell>
+                <TableCell>{cat.displayOrder ?? 0}</TableCell>
+                <TableCell>
+                  <Badge variant={cat.showInNav ? "default" : "secondary"}>
+                    {cat.showInNav ? "Yes" : "No"}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <Badge variant={cat.isActive ? "success" : "secondary"}>
                     {cat.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell className="space-x-2 text-right">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setEditId(cat._id);
-                      setForm({
-                        name: cat.name,
-                        image: cat.image || "",
-                        description: cat.description || "",
-                      });
-                    }}
-                  >
+                  {cat.depth === 0 && cat.isActive && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => openCreateSubcategory(cat._id)}
+                    >
+                      Add sub
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => openEdit(cat)}>
                     Edit
                   </Button>
                   {cat.isActive && (

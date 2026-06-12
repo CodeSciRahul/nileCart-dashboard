@@ -22,13 +22,16 @@ import {
   toggleBannerStatus,
   deleteBanner,
 } from "@/services/adminService.js";
+import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
+import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { normalizeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
 const emptyForm = {
   title: "",
   subtitle: "",
-  image: "",
+  image: null,
   ctaText: "Shop Now",
   ctaLink: "",
   displayOrder: "0",
@@ -79,6 +82,10 @@ function BannersPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (!form.image) {
+                toast.error("Banner image is required.");
+                return;
+              }
               saveMutation.mutate({
                 ...form,
                 displayOrder: Number(form.displayOrder) || 0,
@@ -94,14 +101,12 @@ function BannersPage() {
                 required
               />
             </div>
-            <div className="space-y-1">
-              <Label>Image URL *</Label>
-              <Input
-                value={form.image}
-                onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-                required
-              />
-            </div>
+            <ImageUpload
+              label="Banner image *"
+              folder={UPLOAD_FOLDERS.PLATFORM_BANNERS}
+              value={form.image}
+              onChange={(image) => setForm((f) => ({ ...f, image }))}
+            />
             <div className="space-y-1">
               <Label>Subtitle</Label>
               <Input
@@ -163,7 +168,7 @@ function BannersPage() {
                       setForm({
                         title: b.title,
                         subtitle: b.subtitle || "",
-                        image: b.image,
+                        image: normalizeStoredImage(b.image),
                         ctaText: b.ctaText || "Shop Now",
                         ctaLink: b.ctaLink || "",
                         displayOrder: String(b.displayOrder ?? 0),
