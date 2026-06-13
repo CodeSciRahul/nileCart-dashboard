@@ -17,6 +17,7 @@ export const queryKeys = {
     orders: (filters) => ["admin", "orders", filters],
     coupons: ["admin", "coupons"],
     banners: ["admin", "banners"],
+    announcements: ["admin", "announcements"],
     categories: ["admin", "categories"],
   },
   categories: {

@@ -20,6 +20,7 @@ import Users from "./pages/admin/Users.jsx";
 import AdminOrders from "./pages/admin/AdminOrders.jsx";
 import Coupons from "./pages/admin/Coupons.jsx";
 import Banners from "./pages/admin/Banners.jsx";
+import Announcements from "./pages/admin/Announcements.jsx";
 import AdminCategories from "./pages/admin/AdminCategories.jsx";
 import Payouts from "./pages/admin/Payouts.jsx";
 
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/admin/orders" element={<AdminOrders />} />
       <Route path="/admin/coupons" element={<Coupons />} />
       <Route path="/admin/banners" element={<Banners />} />
+      <Route path="/admin/announcements" element={<Announcements />} />
       <Route path="/admin/categories" element={<AdminCategories />} />
       <Route path="/admin/payouts" element={<Payouts />} />
 
