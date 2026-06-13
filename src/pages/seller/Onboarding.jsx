@@ -10,9 +10,16 @@ import { Textarea } from "@/components/ui/textarea.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { applyForSeller } from "@/services/sellerService.js";
 import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
-import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { SELLER_DOCUMENT_TYPES, UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { serializeSellerDocuments, serializeStoredImage } from "@/lib/storedImage.js";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { toast } from "sonner";
+
+const emptyDocuments = {
+  idProof: null,
+  businessProof: null,
+  addressProof: null,
+};
 
 function OnboardingForm() {
   const navigate = useNavigate();
@@ -23,6 +30,7 @@ function OnboardingForm() {
       navigate("/seller/profile", { replace: true });
     }
   }, [user, navigate]);
+
   const [form, setForm] = useState({
     name: "",
     mobileNumber: "",
@@ -40,6 +48,7 @@ function OnboardingForm() {
     accountNumber: "",
     ifscCode: "",
     nationalId: "",
+    documents: { ...emptyDocuments },
   });
 
   const mutation = useMutation({
@@ -49,20 +58,53 @@ function OnboardingForm() {
       await refreshProfile();
       navigate("/seller/profile");
     },
+    onError: (err) => toast.error(err.message),
   });
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  const setDocument = (key) => (image) =>
+    setForm((f) => ({
+      ...f,
+      documents: { ...f.documents, [key]: image },
+    }));
+
+  const validateDocuments = () => {
+    const { idProof, businessProof, addressProof } = form.documents;
+
+    if (!idProof) {
+      toast.error("Government ID proof is required.");
+      return false;
+    }
+    if (!businessProof) {
+      toast.error("Business proof is required.");
+      return false;
+    }
+    if (!addressProof) {
+      toast.error("Address proof is required.");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validateDocuments()) {
+      return;
+    }
+
     mutation.mutate({
       name: form.name,
       mobileNumber: form.mobileNumber,
       storeName: form.storeName,
       description: form.description,
       tinNumber: form.tinNumber,
-      logo: form.logo ?? undefined,
-      banner: form.banner ?? undefined,
+      nationalId: form.nationalId,
+      logo: serializeStoredImage(form.logo),
+      banner: serializeStoredImage(form.banner),
+      documents: serializeSellerDocuments(form.documents),
       address: {
         addressLine: form.addressLine,
         city: form.city,
@@ -75,7 +117,6 @@ function OnboardingForm() {
         accountNumber: form.accountNumber,
         ifscCode: form.ifscCode,
       },
-      nationalId: form.nationalId,
     });
   };
 
@@ -159,26 +200,59 @@ function OnboardingForm() {
               </div>
             </div>
 
+            <p className="font-medium text-sm">Verification documents *</p>
+            <p className="text-muted-foreground text-xs">
+              Upload clear photos or scans (JPEG, PNG, WEBP). These are required for seller approval.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <ImageUpload
+                label="Government ID proof *"
+                folder={UPLOAD_FOLDERS.SELLER_DOCUMENTS}
+                documentType={SELLER_DOCUMENT_TYPES.ID_PROOF}
+                value={form.documents.idProof}
+                onChange={setDocument("idProof")}
+                helperText="National ID, passport, or driving licence."
+              />
+              <ImageUpload
+                label="Business proof *"
+                folder={UPLOAD_FOLDERS.SELLER_DOCUMENTS}
+                documentType={SELLER_DOCUMENT_TYPES.BUSINESS_PROOF}
+                value={form.documents.businessProof}
+                onChange={setDocument("businessProof")}
+                helperText="Business registration or trade licence."
+              />
+              <div className="md:col-span-2">
+                <ImageUpload
+                  label="Address proof *"
+                  folder={UPLOAD_FOLDERS.SELLER_DOCUMENTS}
+                  documentType={SELLER_DOCUMENT_TYPES.ADDRESS_PROOF}
+                  value={form.documents.addressProof}
+                  onChange={setDocument("addressProof")}
+                  helperText="Utility bill or bank statement showing your address."
+                />
+              </div>
+            </div>
+
             <p className="font-medium text-sm">Bank details</p>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label>Account holder *</Label>
-                <Input value={form.accountHolderName} onChange={set("accountHolderName")} />
+                <Input value={form.accountHolderName} onChange={set("accountHolderName")} required />
               </div>
               <div className="space-y-1">
                 <Label>Account number *</Label>
-                <Input value={form.accountNumber} onChange={set("accountNumber")} />
+                <Input value={form.accountNumber} onChange={set("accountNumber")} required />
               </div>
               <div className="space-y-1">
                 <Label>IFSC code *</Label>
-                <Input value={form.ifscCode} onChange={set("ifscCode")} />
+                <Input value={form.ifscCode} onChange={set("ifscCode")} required />
               </div>
             </div>
 
             <p className="font-medium text-sm">National ID</p>
             <div className="space-y-1">
-              <Label>National ID *</Label>
-              <Input value={form.nationalId} onChange={set("nationalId")} />
+              <Label>National ID number *</Label>
+              <Input value={form.nationalId} onChange={set("nationalId")} required />
             </div>
 
             <Button type="submit" disabled={mutation.isPending}>

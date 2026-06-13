@@ -15,7 +15,7 @@ import { createProduct, getMyProducts, updateProduct } from "@/services/productS
 import { getCategories } from "@/services/categoryService.js";
 import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
 import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
-import { normalizeStoredImages } from "@/lib/storedImage.js";
+import { normalizeStoredImages, serializeStoredImages } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
@@ -75,7 +75,7 @@ const buildProductPayload = (form) => ({
   description: form.description,
   category: form.category,
   gender: form.gender,
-  images: form.images,
+  images: serializeStoredImages(form.images),
   tags: form.tags,
   variants: form.variants.map(({ key, ...variant }) => ({
     sku: variant.sku.trim(),
@@ -84,7 +84,7 @@ const buildProductPayload = (form) => ({
     stock: Number(variant.stock) || 0,
     price: Number(variant.price),
     mrp: Number(variant.mrp),
-    images: variant.images || [],
+    images: serializeStoredImages(variant.images),
   })),
 });
 

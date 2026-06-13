@@ -15,6 +15,7 @@ import Orders from "./pages/seller/Orders.jsx";
 import OrderDetail from "./pages/seller/OrderDetail.jsx";
 import AdminHome from "./pages/admin/AdminHome.jsx";
 import Sellers from "./pages/admin/Sellers.jsx";
+import AdminSellerDetail from "./pages/admin/AdminSellerDetail.jsx";
 import Users from "./pages/admin/Users.jsx";
 import AdminOrders from "./pages/admin/AdminOrders.jsx";
 import Coupons from "./pages/admin/Coupons.jsx";
@@ -65,6 +66,7 @@ function AppRoutes() {
 
       <Route path="/admin" element={<AdminHome />} />
       <Route path="/admin/sellers" element={<Sellers />} />
+      <Route path="/admin/seller/:id" element={<AdminSellerDetail />} />
       <Route path="/admin/users" element={<Users />} />
       <Route path="/admin/orders" element={<AdminOrders />} />
       <Route path="/admin/coupons" element={<Coupons />} />

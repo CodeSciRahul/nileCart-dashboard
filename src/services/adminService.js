@@ -4,6 +4,8 @@ export const getAdminStats = () => apiClient.get("/admin/stats");
 
 export const listSellers = (params) => apiClient.get("/admin/sellers", { params });
 
+export const getSellerById = (id) => apiClient.get(`/admin/sellers/${id}`);
+
 export const approveSeller = (id, payload) =>
   apiClient.patch(`/admin/sellers/${id}/approve`, payload);
 

@@ -12,6 +12,7 @@ export const queryKeys = {
   admin: {
     stats: ["admin", "stats"],
     sellers: (status) => ["admin", "sellers", status],
+    seller: (id) => ["admin", "sellers", "detail", id],
     users: (role) => ["admin", "users", role],
     orders: (filters) => ["admin", "orders", filters],
     coupons: ["admin", "coupons"],

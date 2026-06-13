@@ -24,7 +24,7 @@ import {
 } from "@/services/adminService.js";
 import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
 import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
-import { normalizeStoredImage } from "@/lib/storedImage.js";
+import { normalizeStoredImage, serializeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
@@ -87,7 +87,11 @@ function BannersPage() {
                 return;
               }
               saveMutation.mutate({
-                ...form,
+                title: form.title,
+                subtitle: form.subtitle,
+                image: serializeStoredImage(form.image),
+                ctaText: form.ctaText,
+                ctaLink: form.ctaLink,
                 displayOrder: Number(form.displayOrder) || 0,
               });
             }}

@@ -41,11 +41,13 @@ export const requestPresignedUploadUrl = async ({
   fileName,
   contentType,
   folder = UPLOAD_FOLDERS.PRODUCTS,
+  documentType,
 }) =>
   apiClient.post("/uploads/presign", {
     fileName,
     contentType,
     folder,
+    documentType,
   });
 
 /** Deletes an uploaded object from S3 using its stored key. */
@@ -105,7 +107,10 @@ export const putFileToS3 = async ({ uploadUrl, file, contentType, onProgress }) 
  * End-to-end image upload: presign on the API, then PUT directly to S3.
  * Returns the permanent file URL and S3 object key for persistence.
  */
-export const uploadImage = async (file, { folder = UPLOAD_FOLDERS.PRODUCTS, onProgress } = {}) => {
+export const uploadImage = async (
+  file,
+  { folder = UPLOAD_FOLDERS.PRODUCTS, documentType, onProgress } = {}
+) => {
   const validation = validateImageFile(file);
 
   if (!validation.valid) {
@@ -120,6 +125,7 @@ export const uploadImage = async (file, { folder = UPLOAD_FOLDERS.PRODUCTS, onPr
     fileName: file.name,
     contentType: validation.contentType,
     folder,
+    documentType,
   });
 
   if (typeof onProgress === "function") {

@@ -20,6 +20,7 @@ import { deleteUploadedImage, validateImageFile } from "@/services/uploadService
 export function ImageUpload({
   label = "Upload image",
   folder = UPLOAD_FOLDERS.PRODUCTS,
+  documentType,
   value = null,
   onChange,
   multiple = false,
@@ -29,7 +30,10 @@ export function ImageUpload({
   const inputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
   const [deletingKey, setDeletingKey] = useState(null);
-  const { upload, isUploading, progress, error, reset } = useImageUpload({ folder });
+  const { upload, isUploading, progress, error, reset } = useImageUpload({
+    folder,
+    documentType,
+  });
 
   const images = multiple
     ? normalizeStoredImages(Array.isArray(value) ? value : value ? [value] : [])

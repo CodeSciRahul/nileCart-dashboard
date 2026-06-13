@@ -5,7 +5,7 @@ import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
 /**
  * Reusable hook for direct-to-S3 image uploads with loading and error state.
  */
-export function useImageUpload({ folder = UPLOAD_FOLDERS.PRODUCTS } = {}) {
+export function useImageUpload({ folder = UPLOAD_FOLDERS.PRODUCTS, documentType } = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -23,6 +23,7 @@ export function useImageUpload({ folder = UPLOAD_FOLDERS.PRODUCTS } = {}) {
       try {
         const result = await uploadImage(file, {
           folder,
+          documentType,
           onProgress: setProgress,
         });
 
@@ -35,7 +36,7 @@ export function useImageUpload({ folder = UPLOAD_FOLDERS.PRODUCTS } = {}) {
         setIsUploading(false);
       }
     },
-    [folder, reset]
+    [folder, documentType, reset]
   );
 
   return {
