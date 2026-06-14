@@ -55,7 +55,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
           <div className="space-y-1">
-            <CardTitle>LightCollection Dashboard</CardTitle>
+            <CardTitle>NileCart Dashboard</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
           <RoleTabs value={loginType} onChange={handleLoginTypeChange} />
