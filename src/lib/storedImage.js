@@ -1,6 +1,6 @@
 /**
  * Client helpers for storedImageSchema: { url: string, key?: string }
- * Must match lightCollection-server/models/schemas/storedImage.schema.js
+ * Must match nileCart-server/models/schemas/storedImage.schema.js
  */
 
 /** @typedef {{ url: string, key?: string }} StoredImage */

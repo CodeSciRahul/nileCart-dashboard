@@ -11,6 +11,7 @@ import {
   Store,
   Ticket,
   Image,
+  Megaphone,
   Wallet,
   PanelLeftClose,
   PanelLeft,
@@ -34,6 +35,7 @@ const adminNav = [
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },
   { to: "/admin/banners", label: "Banners", icon: Image },
+  { to: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/payouts", label: "Payouts", icon: Wallet },
 ];

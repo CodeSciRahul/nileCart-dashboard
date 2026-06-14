@@ -79,6 +79,15 @@ function AdminCategoriesPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id) => updateAdminCategory(id, { isActive: true }),
+    onSuccess: () => {
+      toast.success("Category activated");
+      invalidateCategories();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const categoryTree = data?.categories || [];
   const flatCategories = useMemo(() => flattenTree(categoryTree), [categoryTree]);
 
@@ -256,7 +265,7 @@ function AdminCategoriesPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="space-x-2 text-right">
-                  {cat.depth === 0 && cat.isActive && (
+                  {/* {cat.depth === 0 && cat.isActive && (
                     <Button
                       size="sm"
                       variant="secondary"
@@ -264,17 +273,26 @@ function AdminCategoriesPage() {
                     >
                       Add sub
                     </Button>
-                  )}
+                  )} */}
                   <Button size="sm" variant="outline" onClick={() => openEdit(cat)}>
                     Edit
                   </Button>
-                  {cat.isActive && (
+                  {cat.isActive ? (
                     <Button
                       size="sm"
                       variant="destructive"
                       onClick={() => deleteMutation.mutate(cat._id)}
                     >
                       Deactivate
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={activateMutation.isPending}
+                      onClick={() => activateMutation.mutate(cat._id)}
+                    >
+                      Activate
                     </Button>
                   )}
                 </TableCell>

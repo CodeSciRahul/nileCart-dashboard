@@ -56,3 +56,14 @@ export const updateAdminCategory = (id, payload) =>
 
 export const deleteAdminCategory = (id) =>
   apiClient.delete(`/admin/categories/${id}`);
+
+export const listAnnouncements = () => apiClient.get("/admin/announcements");
+
+export const createAnnouncement = (payload) =>
+  apiClient.post("/admin/announcements", payload);
+
+export const updateAnnouncement = (id, payload) =>
+  apiClient.put(`/admin/announcements/${id}`, payload);
+
+export const deleteAnnouncement = (id) =>
+  apiClient.delete(`/admin/announcements/${id}`);
