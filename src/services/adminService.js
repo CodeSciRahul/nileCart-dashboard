@@ -34,6 +34,9 @@ export const updateCoupon = (id, payload) => apiClient.put(`/admin/coupons/${id}
 export const toggleCouponStatus = (id, payload) =>
   apiClient.patch(`/admin/coupons/${id}/status`, payload);
 
+export const searchProducts = (params) =>
+  apiClient.get("/products/search", { params });
+
 export const listBanners = () => apiClient.get("/admin/banners");
 
 export const createBanner = (payload) => apiClient.post("/admin/banners", payload);
