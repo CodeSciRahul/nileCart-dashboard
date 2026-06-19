@@ -26,6 +26,7 @@ import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
 import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
 import { normalizeStoredImage, serializeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
+import { DEPARTMENT_OPTIONS, departmentLabel, formatParentDepartmentOption } from "@/lib/departments.js";
 import { toast } from "sonner";
 
 const emptyForm = {
@@ -33,6 +34,7 @@ const emptyForm = {
   image: null,
   description: "",
   parent: "",
+  department: "",
   displayOrder: 0,
   showInNav: true,
 };
@@ -113,6 +115,7 @@ function AdminCategoriesPage() {
       image: normalizeStoredImage(cat.image),
       description: cat.description || "",
       parent: cat.parent?._id || cat.parent || "",
+      department: cat.department || "",
       displayOrder: cat.displayOrder ?? 0,
       showInNav: cat.showInNav ?? true,
     });
@@ -120,22 +123,26 @@ function AdminCategoriesPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    saveMutation.mutate({
+    const payload = {
       name: form.name,
       image: serializeStoredImage(form.image),
       description: form.description || undefined,
       parent: form.parent || null,
       displayOrder: Number(form.displayOrder) || 0,
       showInNav: form.showInNav,
-    });
+    };
+    if (!form.parent) {
+      payload.department = form.department;
+    }
+    saveMutation.mutate(payload);
   };
 
   return (
     <DashboardLayout title="Categories" variant="admin">
       <p className="text-muted-foreground mb-6 max-w-2xl text-sm">
-        Build a two-level catalog: top-level categories (e.g. Topwear, Footwear) and subcategories
-        under them (e.g. T-Shirts, Casual Shoes). Sellers assign products to categories from this
-        catalog.
+        Build a two-level catalog: top-level departments (Men, Women, Kids, Sports, etc.) and
+        subcategories under them (e.g. T-Shirts, Dresses). Sellers assign products to
+        subcategories from this catalog.
       </p>
 
       <Card className="mb-6 max-w-xl">
@@ -145,13 +152,13 @@ function AdminCategoriesPage() {
               ? "Edit category"
               : form.parent
                 ? "Create subcategory"
-                : "Create category"}
+                : "Create department"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-1">
-              <Label>Parent category</Label>
+              <Label>Parent department</Label>
               <Select
                 value={form.parent}
                 onChange={(e) => setForm((f) => ({ ...f, parent: e.target.value }))}
@@ -159,17 +166,38 @@ function AdminCategoriesPage() {
                   editId && flatCategories.find((c) => c._id === editId)?.children?.length
                 )}
               >
-                <option value="">None (top-level category)</option>
+                <option value="">None — create a new top-level department</option>
                 {parentOptions.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+                    {formatParentDepartmentOption(cat)}
                   </option>
                 ))}
               </Select>
               <p className="text-muted-foreground text-xs">
-                Leave empty for a top-level group. Select a parent to create a subcategory.
+                Leave empty to create a new department for the storefront header. Select a parent
+                department to add a subcategory under it.
               </p>
             </div>
+            {!form.parent && (
+              <div className="space-y-1">
+                <Label>Department</Label>
+                <Select
+                  value={form.department}
+                  onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
+                  required
+                >
+                  <option value="">Select department type</option>
+                  {DEPARTMENT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} — {opt.description}
+                    </option>
+                  ))}
+                </Select>
+                <p className="text-muted-foreground text-xs">
+                  Department type shown in storefront navigation.
+                </p>
+              </div>
+            )}
             <div className="space-y-1">
               <Label>Name</Label>
               <Input
@@ -229,6 +257,7 @@ function AdminCategoriesPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Department</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Order</TableHead>
               <TableHead>Nav</TableHead>
@@ -249,8 +278,11 @@ function AdminCategoriesPage() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={cat.depth === 0 ? "default" : "secondary"}>
-                    {cat.depth === 0 ? "Parent" : "Subcategory"}
+                    {cat.depth === 0 ? "Department" : "Subcategory"}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {cat.department ? departmentLabel(cat.department) : "—"}
                 </TableCell>
                 <TableCell>{cat.slug}</TableCell>
                 <TableCell>{cat.displayOrder ?? 0}</TableCell>
