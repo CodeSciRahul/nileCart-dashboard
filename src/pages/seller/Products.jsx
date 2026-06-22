@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
-import { getMyProducts, deleteProduct } from "@/services/productService.js";
+import { getMyProducts, deleteProduct, updateProduct } from "@/services/productService.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
@@ -29,6 +29,16 @@ function ProductsPage() {
       toast.success("Product deactivated");
       queryClient.invalidateQueries({ queryKey: ["seller", "products"] });
     },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id) => updateProduct(id, { isActive: true }),
+    onSuccess: () => {
+      toast.success("Product activated");
+      queryClient.invalidateQueries({ queryKey: ["seller", "products"] });
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   const products = data?.products || [];
@@ -71,13 +81,23 @@ function ProductsPage() {
                       Edit
                     </Button>
                   </Link>
-                  {product.isActive && (
+                  {product.isActive ? (
                     <Button
                       variant="destructive"
                       size="sm"
+                      disabled={removeMutation.isPending}
                       onClick={() => removeMutation.mutate(product._id)}
                     >
                       Deactivate
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={activateMutation.isPending}
+                      onClick={() => activateMutation.mutate(product._id)}
+                    >
+                      Activate
                     </Button>
                   )}
                 </TableCell>
