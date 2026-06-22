@@ -1,5 +1,6 @@
 import { Button } from "../components/ui/button.jsx";
 import { Input } from "../components/ui/input.jsx";
+import { PasswordInput } from "../components/ui/password-input.jsx";
 import { Label } from "../components/ui/label.jsx";
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card.jsx";
+import { AuthLayout } from "../components/auth/AuthLayout.jsx";
 import { RoleTabs } from "../components/auth/RoleTabs.jsx";
 import { OtpVerificationSection } from "../components/auth/OtpVerificationSection.jsx";
 import { AuthFooter } from "../components/auth/AuthFooter.jsx";
@@ -51,11 +53,11 @@ export default function Login() {
         : "Sign in with your seller credentials.";
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/30 p-6">
-      <Card className="w-full max-w-md">
+    <AuthLayout>
+      <Card className="border-brand-amber/20 shadow-md">
         <CardHeader className="space-y-4">
           <div className="space-y-1">
-            <CardTitle>NileCart Dashboard</CardTitle>
+            <CardTitle className="text-xl font-bold">Welcome back</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
           <RoleTabs value={loginType} onChange={handleLoginTypeChange} />
@@ -122,15 +124,14 @@ export default function Login() {
                     <Label htmlFor="password">Password</Label>
                     <button
                       type="button"
-                      className="text-xs text-primary hover:underline"
+                      className="text-xs font-medium text-brand-amber hover:underline"
                       onClick={() => setShowForgotPassword(true)}
                     >
                       Forgot password?
                     </button>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -150,14 +151,14 @@ export default function Login() {
               {loginType === "seller" && (
                 <>
                   <div className="relative text-center text-xs text-muted-foreground">
-                    <span className="bg-card px-2">or</span>
-                    <div className="absolute inset-x-0 top-1/2 -z-10 border-t border-border" />
+                    <span className="relative z-10 bg-card px-2">or</span>
+                    <div className="absolute inset-x-0 top-1/2 border-t border-brand-amber/15" />
                   </div>
 
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-brand-amber/20 hover:bg-brand-cream"
                     disabled={loading}
                     onClick={handleGoogle}
                   >
@@ -176,7 +177,7 @@ export default function Login() {
         </CardContent>
 
         {!showForgotPassword && (
-          <CardFooter className="border-t pt-6">
+          <CardFooter className="border-t border-brand-amber/10 pt-6">
             {loginType === "seller" ? (
               <AuthFooter variant="login" />
             ) : (
@@ -187,6 +188,6 @@ export default function Login() {
           </CardFooter>
         )}
       </Card>
-    </main>
+    </AuthLayout>
   );
 }

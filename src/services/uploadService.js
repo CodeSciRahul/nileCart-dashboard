@@ -2,7 +2,7 @@ import { apiClient } from "../lib/api.js";
 import {
   ALLOWED_IMAGE_TYPES,
   UPLOAD_FOLDERS,
-} from "../lib/uploadConstants.js";
+} from "../constants/uploads.js";
 
 const normalizeContentType = (file) => {
   const type = file.type?.toLowerCase();

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { Package, ShoppingCart, Clock } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import { StatCard } from "@/components/ui/stat-card.jsx";
 import { getSellerStats } from "@/services/sellerService.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { ProtectedRoute } from "@/components/ProtectedRoute.jsx";
@@ -13,24 +14,29 @@ function SellerHomePage() {
 
   const stats = data?.stats;
 
+  const cards = [
+    { label: "Active products", value: stats?.productCount ?? "—", icon: Package },
+    { label: "Total orders", value: stats?.totalOrders ?? "—", icon: ShoppingCart },
+    { label: "Pending orders", value: stats?.pendingOrders ?? "—", icon: Clock },
+  ];
+
   return (
     <DashboardLayout title="Dashboard" variant="seller">
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          { label: "Active products", value: stats?.productCount ?? "—" },
-          { label: "Total orders", value: stats?.totalOrders ?? "—" },
-          { label: "Pending orders", value: stats?.pendingOrders ?? "—" },
-        ].map(({ label, value }) => (
-          <Card key={label}>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{isLoading ? "..." : value}</p>
-            </CardContent>
-          </Card>
+      <div className="mb-6">
+        <p className="text-sm text-muted-foreground">
+          Your store performance at a glance.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map(({ label, value, icon }, index) => (
+          <StatCard
+            key={label}
+            label={label}
+            value={value}
+            icon={icon}
+            index={index}
+            isLoading={isLoading}
+          />
         ))}
       </div>
     </DashboardLayout>

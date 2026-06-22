@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { uploadImage } from "@/services/uploadService.js";
-import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { UPLOAD_FOLDERS } from "@/constants/uploads.js";
 
 /**
  * Reusable hook for direct-to-S3 image uploads with loading and error state.

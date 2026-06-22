@@ -17,16 +17,7 @@ import { getAdminOrders, updateAdminOrderStatus } from "@/services/adminService.
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
-const ALL_STATUSES = [
-  "placed",
-  "confirmed",
-  "packed",
-  "shipped",
-  "out_for_delivery",
-  "delivered",
-  "cancelled",
-  "returned",
-];
+import { ALL_ORDER_STATUSES } from "@/constants/orderStatus.js";
 
 function AdminOrdersPage() {
   const queryClient = useQueryClient();
@@ -60,7 +51,7 @@ function AdminOrdersPage() {
           className="w-48"
         >
           <option value="">All statuses</option>
-          {ALL_STATUSES.map((s) => (
+          {ALL_ORDER_STATUSES.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -99,7 +90,7 @@ function AdminOrdersPage() {
                         className="w-40"
                       >
                         <option value="">Status</option>
-                        {ALL_STATUSES.map((s) => (
+                        {ALL_ORDER_STATUSES.map((s) => (
                           <option key={s} value={s}>
                             {s}
                           </option>

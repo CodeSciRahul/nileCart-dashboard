@@ -3,7 +3,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { useImageUpload } from "@/hooks/useImageUpload.js";
-import { ACCEPT_IMAGE_INPUT, UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { ACCEPT_IMAGE_INPUT, UPLOAD_FOLDERS } from "@/constants/uploads.js";
 import {
   getImageKey,
   getImageUrl,

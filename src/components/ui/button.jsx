@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva } from "class-variance-authority";
 
@@ -54,4 +55,19 @@ function Button({
   );
 }
 
-export { Button, buttonVariants }
+function ButtonLink({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}) {
+  return (
+    <Link
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
+}
+
+export { Button, ButtonLink, buttonVariants }

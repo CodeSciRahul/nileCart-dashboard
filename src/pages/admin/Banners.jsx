@@ -23,7 +23,7 @@ import {
   deleteBanner,
 } from "@/services/adminService.js";
 import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
-import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
+import { UPLOAD_FOLDERS } from "@/constants/uploads.js";
 import { normalizeStoredImage, serializeStoredImage } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";

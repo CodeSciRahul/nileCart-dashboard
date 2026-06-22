@@ -1,120 +1,62 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Trash2, X } from "lucide-react";
+import {
+  ImageIcon,
+  Layers,
+  Package,
+  Plus,
+  Sparkles,
+  Tag,
+  Type,
+} from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout.jsx";
 import { ProtectedRoute } from "@/components/ProtectedRoute.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
-import { Label } from "@/components/ui/label.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
 import { Select } from "@/components/ui/table.jsx";
-import { Badge } from "@/components/ui/badge.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import {
+  Field,
+  FormSection,
+  GenderPills,
+  ProductFormHero,
+  ProductPreviewPanel,
+  TagsInput,
+  VariantCard,
+} from "@/components/seller/ProductFormUI.jsx";
+import { ProductFormGuideSidebar } from "@/components/seller/ProductFormGuideSidebar.jsx";
 import { createProduct, getMyProducts, updateProduct } from "@/services/productService.js";
 import { getCategories } from "@/services/categoryService.js";
 import { ImageUpload } from "@/components/upload/ImageUpload.jsx";
-import { UPLOAD_FOLDERS } from "@/lib/uploadConstants.js";
-import { normalizeStoredImages, serializeStoredImages } from "@/lib/storedImage.js";
+import { UPLOAD_FOLDERS } from "@/constants/uploads.js";
+import { normalizeStoredImages } from "@/lib/storedImage.js";
+import {
+  buildProductPayload,
+  createVariant,
+  flattenCategoryOptions,
+  mapProductVariant,
+} from "@/lib/productUtils.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
-
-const createVariant = (overrides = {}) => ({
-  key: crypto.randomUUID(),
-  sku: "",
-  size: "",
-  color: "",
-  stock: 0,
-  price: 0,
-  mrp: 0,
-  images: [],
-  ...overrides,
-});
-
-const mapProductVariant = (variant) =>
-  createVariant({
-    sku: variant.sku || "",
-    size: variant.size || "",
-    color: variant.color || "",
-    stock: variant.stock ?? 0,
-    price: variant.price ?? 0,
-    mrp: variant.mrp ?? 0,
-    images: normalizeStoredImages(variant.images),
-  });
-
-/**
- * Payload sent to POST /api/products (create) or PUT /api/products/:id (update).
- *
- * @example
- * {
- *   "title": "Women's Black Puff Sleeve Casual Top",
- *   "description": "Soft cotton top with puff sleeves.",
- *   "category": "6a1f22789bb7ea2c8eac0ac2",
- *   "gender": "Women",
- *   "images": [
- *     { "url": "https://nilecart.s3.us-east-1.amazonaws.com/products/.../img1.png", "key": "products/sellerId/img1.png" }
- *   ],
- *   "tags": ["casual", "cotton"],
- *   "variants": [
- *     {
- *       "sku": "WBT-BLK-S",
- *       "size": "S",
- *       "color": "Black",
- *       "stock": 22,
- *       "price": 299,
- *       "mrp": 495,
- *       "images": [
- *         { "url": "https://nilecart.s3.us-east-1.amazonaws.com/products/.../variant.png", "key": "products/sellerId/variant.png" }
- *       ]
- *     }
- *   ]
- * }
- */
-const buildProductPayload = (form) => ({
-  title: form.title,
-  description: form.description,
-  category: form.category,
-  gender: form.gender,
-  images: serializeStoredImages(form.images),
-  tags: form.tags,
-  variants: form.variants.map(({ key, ...variant }) => ({
-    sku: variant.sku.trim(),
-    size: variant.size.trim(),
-    color: variant.color.trim(),
-    stock: Number(variant.stock) || 0,
-    price: Number(variant.price),
-    mrp: Number(variant.mrp),
-    images: serializeStoredImages(variant.images),
-  })),
-});
 
 function ProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const { data: categoriesData } = useQuery({
     queryKey: queryKeys.categories.all,
     queryFn: () => getCategories({ tree: "true" }),
   });
 
-  const categoryOptions = useMemo(() => {
-    const flatten = (nodes, parentName = "") =>
-      (nodes || []).flatMap((node) => {
-        const label = parentName ? `${parentName} › ${node.name}` : node.name;
-        const children = flatten(node.children, node.name);
+  const categoryOptions = useMemo(
+    () => flattenCategoryOptions(categoriesData?.categories || []),
+    [categoriesData]
+  );
 
-        if (children.length > 0) {
-          return children;
-        }
-
-        return [{ _id: node._id, label }];
-      });
-
-    return flatten(categoriesData?.categories || []);
-  }, [categoriesData]);
-
-  const { data: productsData } = useQuery({
+  const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: queryKeys.seller.products({}),
     queryFn: getMyProducts,
     enabled: isEdit,
@@ -152,6 +94,11 @@ function ProductFormPage() {
       }
     }
   }, [isEdit, id, productsData]);
+
+  const categoryLabel = useMemo(
+    () => categoryOptions.find((c) => c._id === form.category)?.label || "",
+    [categoryOptions, form.category]
+  );
 
   const mutation = useMutation({
     mutationFn: (payload) =>
@@ -264,209 +211,235 @@ function ProductFormPage() {
     mutation.mutate(buildProductPayload(form));
   };
 
+  if (isEdit && productsLoading) {
+    return (
+      <DashboardLayout title="Edit product" variant="seller">
+        <div className="mx-auto max-w-5xl animate-pulse space-y-6">
+          <div className="h-24 rounded-2xl bg-brand-cream/30" />
+          <div className="h-96 rounded-xl bg-brand-cream/20" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout title={isEdit ? "Edit product" : "New product"} variant="seller">
-      <Card className="max-w-3xl">
-        <CardHeader>
-          <CardTitle>{isEdit ? "Edit product" : "Create product"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label>Title *</Label>
-                <Input value={form.title} onChange={set("title")} required />
+      <div className="mx-auto max-w-5xl space-y-6">
+        <ProductFormHero
+          isEdit={isEdit}
+          title={form.title}
+          onOpenGuide={() => setGuideOpen(true)}
+        />
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+            <div className="space-y-6">
+              <div className="xl:hidden">
+                <ProductPreviewPanel form={form} categoryLabel={categoryLabel} />
               </div>
-              <div className="space-y-1">
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={set("description")} />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <Label>Category *</Label>
-                  <Select value={form.category} onChange={set("category")} required>
-                    <option value="">Select category</option>
-                    {categoryOptions.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Gender</Label>
-                  <Select value={form.gender} onChange={set("gender")}>
-                    <option value="Women">Women</option>
-                    <option value="Men">Men</option>
-                  </Select>
-                </div>
-              </div>
-              <ImageUpload
-                label="Product images"
-                folder={UPLOAD_FOLDERS.PRODUCTS}
-                multiple
-                value={form.images}
-                onChange={(images) => setForm((f) => ({ ...f, images }))}
-                helperText="Upload JPEG, PNG, or WEBP. Images are stored directly in S3."
-              />
-              <div className="space-y-2">
-                <Label>Tags</Label>
-                <div className="flex gap-2">
+
+              <FormSection
+                step={1}
+                icon={Type}
+                title="Basic details"
+                description="Title and description shown on your product page."
+              >
+                <Field label="Title" required>
                   <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder="e.g. summer, cotton, casual"
+                    value={form.title}
+                    onChange={set("title")}
+                    required
+                    placeholder="e.g. Women's Black Puff Sleeve Top"
                   />
+                </Field>
+                <Field label="Description" hint="Fabric, fit, care instructions, and sizing notes.">
+                  <Textarea
+                    value={form.description}
+                    onChange={set("description")}
+                    placeholder="Describe your product for shoppers..."
+                    className="min-h-24"
+                  />
+                </Field>
+              </FormSection>
+
+              <FormSection
+                step={2}
+                icon={Layers}
+                title="Category & audience"
+                description="Where shoppers will find this product."
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Category" required>
+                    <Select value={form.category} onChange={set("category")} required>
+                      <option value="">Select category</option>
+                      {categoryOptions.map((cat) => (
+                        <option key={cat._id} value={cat._id}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Gender">
+                    <GenderPills
+                      value={form.gender}
+                      onChange={(gender) => setForm((f) => ({ ...f, gender }))}
+                    />
+                  </Field>
+                </div>
+              </FormSection>
+
+              <FormSection
+                step={3}
+                icon={ImageIcon}
+                title="Product images"
+                description="First image is used as the cover in listings."
+              >
+                <div className="rounded-xl border border-brand-amber/15 bg-brand-cream/20 p-4">
+                  <ImageUpload
+                    label="Product images"
+                    folder={UPLOAD_FOLDERS.PRODUCTS}
+                    multiple
+                    value={form.images}
+                    onChange={(images) => setForm((f) => ({ ...f, images }))}
+                    helperText="Upload JPEG, PNG, or WEBP. Images are stored directly in S3."
+                  />
+                </div>
+              </FormSection>
+
+              <FormSection
+                step={4}
+                icon={Tag}
+                title="Tags"
+                description="Keywords that help with search and filtering."
+              >
+                <TagsInput
+                  tags={form.tags}
+                  tagInput={tagInput}
+                  onTagInputChange={setTagInput}
+                  onAddTag={addTag}
+                  onRemoveTag={removeTag}
+                  onKeyDown={handleTagKeyDown}
+                />
+              </FormSection>
+
+              <FormSection
+                step={5}
+                icon={Package}
+                title="Variants"
+                description="One row per size, color, or SKU combination."
+                action={
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => addTag(tagInput)}
-                    disabled={!tagInput.trim()}
+                    size="sm"
+                    onClick={addVariant}
+                    className="shrink-0 border-brand-amber/25"
                   >
-                    Add
+                    <Plus className="mr-1 size-4" />
+                    Add variant
                   </Button>
+                }
+              >
+                <div className="space-y-4">
+                  {form.variants.map((variant, index) => (
+                    <VariantCard
+                      key={variant.key}
+                      variant={variant}
+                      index={index}
+                      canRemove={form.variants.length > 1}
+                      onRemove={removeVariant}
+                    >
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <Field label="SKU" required>
+                          <Input
+                            value={variant.sku}
+                            onChange={(e) => updateVariant(index, "sku", e.target.value)}
+                            placeholder="e.g. TOP-001-M-RED"
+                            required
+                            className="font-mono text-sm"
+                          />
+                        </Field>
+                        <Field label="Size">
+                          <Input
+                            value={variant.size}
+                            onChange={(e) => updateVariant(index, "size", e.target.value)}
+                            placeholder="e.g. M"
+                          />
+                        </Field>
+                        <Field label="Color">
+                          <Input
+                            value={variant.color}
+                            onChange={(e) => updateVariant(index, "color", e.target.value)}
+                            placeholder="e.g. Red"
+                          />
+                        </Field>
+                        <Field label="Stock">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={variant.stock}
+                            onChange={(e) => updateVariant(index, "stock", e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Price" required hint="Selling price customers pay.">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={variant.price}
+                            onChange={(e) => updateVariant(index, "price", e.target.value)}
+                            required
+                          />
+                        </Field>
+                        <Field label="MRP" required hint="Original price before discount.">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={variant.mrp}
+                            onChange={(e) => updateVariant(index, "mrp", e.target.value)}
+                            required
+                          />
+                        </Field>
+                        <div className="md:col-span-2 lg:col-span-3">
+                          <div className="rounded-xl border border-brand-amber/15 bg-brand-cream/20 p-4">
+                            <ImageUpload
+                              label={`Variant ${index + 1} images`}
+                              folder={UPLOAD_FOLDERS.PRODUCTS}
+                              multiple
+                              value={variant.images}
+                              onChange={(images) => updateVariant(index, "images", images)}
+                              helperText="Optional images specific to this variant (e.g. color or size)."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </VariantCard>
+                  ))}
                 </div>
-                <p className="text-muted-foreground text-xs">
-                  Press Enter or click Add. Tags help with search and filtering.
-                </p>
-                {form.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {form.tags.map((tag, index) => (
-                      <Badge key={`${tag}-${index}`} variant="secondary" className="gap-1 pr-1">
-                        {tag}
-                        <button
-                          type="button"
-                          className="rounded-sm p-0.5 hover:bg-muted"
-                          onClick={() => removeTag(index)}
-                          aria-label={`Remove ${tag}`}
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+              </FormSection>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-medium text-sm">Variants</p>
-                  <p className="text-muted-foreground text-xs">
-                    Add one row per size, color, or SKU combination.
-                  </p>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-                  <Plus className="mr-1 size-4" />
-                  Add variant
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {form.variants.map((variant, index) => (
-                  <div
-                    key={variant.key}
-                    className="rounded-lg border border-border bg-muted/20 p-4"
-                  >
-                    <div className="mb-4 flex items-center justify-between">
-                      <p className="font-medium text-sm">Variant {index + 1}</p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => removeVariant(index)}
-                        disabled={form.variants.length <= 1}
-                      >
-                        <Trash2 className="mr-1 size-4" />
-                        Remove
-                      </Button>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      <div className="space-y-1">
-                        <Label>SKU *</Label>
-                        <Input
-                          value={variant.sku}
-                          onChange={(e) => updateVariant(index, "sku", e.target.value)}
-                          placeholder="e.g. TOP-001-M-RED"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Size</Label>
-                        <Input
-                          value={variant.size}
-                          onChange={(e) => updateVariant(index, "size", e.target.value)}
-                          placeholder="e.g. M"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Color</Label>
-                        <Input
-                          value={variant.color}
-                          onChange={(e) => updateVariant(index, "color", e.target.value)}
-                          placeholder="e.g. Red"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Stock</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={variant.stock}
-                          onChange={(e) => updateVariant(index, "stock", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Price *</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={variant.price}
-                          onChange={(e) => updateVariant(index, "price", e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>MRP *</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={variant.mrp}
-                          onChange={(e) => updateVariant(index, "mrp", e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="md:col-span-2 lg:col-span-3">
-                        <ImageUpload
-                          label={`Variant ${index + 1} images`}
-                          folder={UPLOAD_FOLDERS.PRODUCTS}
-                          multiple
-                          value={variant.images}
-                          onChange={(images) => updateVariant(index, "images", images)}
-                          helperText="Optional images specific to this variant (e.g. color or size)."
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="hidden xl:block">
+              <ProductPreviewPanel form={form} categoryLabel={categoryLabel} />
             </div>
+          </div>
 
-            <div className="flex gap-2">
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save product"}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-brand-amber/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={mutation.isPending} size="lg" className="gap-1.5 px-6">
+              <Sparkles className="size-4" />
+              {mutation.isPending ? "Saving..." : isEdit ? "Update product" : "Save product"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <ProductFormGuideSidebar
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        isEdit={isEdit}
+      />
     </DashboardLayout>
   );
 }

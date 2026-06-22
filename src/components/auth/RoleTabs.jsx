@@ -7,17 +7,17 @@ export function RoleTabs({ value, onChange }) {
   ];
 
   return (
-    <div className="inline-flex rounded-full border border-border bg-muted/50 p-0.5">
+    <div className="inline-flex rounded-full border border-brand-amber/20 bg-brand-cream/50 p-1 ring-1 ring-brand-amber/10">
       {roles.map((role) => (
         <button
           key={role.id}
           type="button"
           onClick={() => onChange(role.id)}
           className={cn(
-            "rounded-full px-3.5 py-1 text-xs font-medium transition-all",
+            "rounded-full px-4 py-1.5 text-xs font-semibold transition-all",
             value === role.id
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+              ? "bg-brand-amber text-foreground shadow-sm ring-1 ring-brand-amber/20"
+              : "text-brand-gray hover:text-foreground",
           )}
         >
           {role.label}

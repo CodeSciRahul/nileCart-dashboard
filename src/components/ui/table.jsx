@@ -28,7 +28,15 @@ function Table({ className, ...props }) {
 }
 
 function TableHeader({ className, ...props }) {
-  return <thead className={cn("[&_tr]:border-b", className)} {...props} />;
+  return (
+    <thead
+      className={cn(
+        "bg-brand-cream/40 [&_tr]:border-b [&_tr]:border-brand-amber/15",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 function TableBody({ className, ...props }) {
@@ -39,7 +47,7 @@ function TableRow({ className, ...props }) {
   return (
     <tr
       className={cn(
-        "border-b border-border transition-colors hover:bg-muted/50",
+        "border-b border-brand-amber/10 transition-colors hover:bg-brand-cream/40",
         className
       )}
       {...props}
@@ -51,7 +59,7 @@ function TableHead({ className, ...props }) {
   return (
     <th
       className={cn(
-        "h-10 px-3 text-left align-middle font-medium text-muted-foreground",
+        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide text-brand-gray",
         className
       )}
       {...props}

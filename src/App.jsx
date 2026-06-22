@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
-import { GuestRoute, ProtectedRoute } from "./components/ProtectedRoute.jsx";
+import { GuestRoute, ProtectedRoute, LoadingScreen } from "./components/ProtectedRoute.jsx";
 import { getDefaultRouteForUser } from "./lib/redirect.js";
 import { setUnauthorizedHandler } from "./lib/api.js";
 import Login from "./pages/Login.jsx";
@@ -18,21 +18,20 @@ import Sellers from "./pages/admin/Sellers.jsx";
 import AdminSellerDetail from "./pages/admin/AdminSellerDetail.jsx";
 import Users from "./pages/admin/Users.jsx";
 import AdminOrders from "./pages/admin/AdminOrders.jsx";
-import Coupons from "./pages/admin/Coupons.jsx";
+import CouponsList from "./pages/admin/CouponsList.jsx";
+import AdminCouponForm from "./pages/admin/CouponFormPage.jsx";
 import Banners from "./pages/admin/Banners.jsx";
-import Announcements from "./pages/admin/Announcements.jsx";
-import AdminCategories from "./pages/admin/AdminCategories.jsx";
+import AnnouncementsList from "./pages/admin/AnnouncementsList.jsx";
+import AdminAnnouncementForm from "./pages/admin/AnnouncementForm.jsx";
+import AdminCategoriesList from "./pages/admin/AdminCategoriesList.jsx";
+import AdminCategoryForm from "./pages/admin/AdminCategoryForm.jsx";
 import Payouts from "./pages/admin/Payouts.jsx";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex min-h-svh items-center justify-center">
-        <p className="text-muted-foreground text-sm">Loading...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) return <Navigate to="/login" replace />;
@@ -70,10 +69,16 @@ function AppRoutes() {
       <Route path="/admin/seller/:id" element={<AdminSellerDetail />} />
       <Route path="/admin/users" element={<Users />} />
       <Route path="/admin/orders" element={<AdminOrders />} />
-      <Route path="/admin/coupons" element={<Coupons />} />
+      <Route path="/admin/coupons" element={<CouponsList />} />
+      <Route path="/admin/coupons/new" element={<AdminCouponForm />} />
+      <Route path="/admin/coupons/:id/edit" element={<AdminCouponForm />} />
       <Route path="/admin/banners" element={<Banners />} />
-      <Route path="/admin/announcements" element={<Announcements />} />
-      <Route path="/admin/categories" element={<AdminCategories />} />
+      <Route path="/admin/announcements" element={<AnnouncementsList />} />
+      <Route path="/admin/announcements/new" element={<AdminAnnouncementForm />} />
+      <Route path="/admin/announcements/:id/edit" element={<AdminAnnouncementForm />} />
+      <Route path="/admin/categories" element={<AdminCategoriesList />} />
+      <Route path="/admin/categories/new" element={<AdminCategoryForm />} />
+      <Route path="/admin/categories/:id/edit" element={<AdminCategoryForm />} />
       <Route path="/admin/payouts" element={<Payouts />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

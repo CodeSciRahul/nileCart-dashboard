@@ -11,7 +11,7 @@ import { queryKeys } from "@/lib/queryKeys.js";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const SELLER_STATUSES = ["confirmed", "packed", "shipped", "out_for_delivery", "delivered"];
+import { SELLER_ORDER_STATUSES } from "@/constants/orderStatus.js";
 
 function OrderDetailPage() {
   const { id } = useParams();
@@ -82,7 +82,7 @@ function OrderDetailPage() {
           <CardContent className="flex gap-2">
             <Select value={status} onChange={(e) => setStatus(e.target.value)} className="flex-1">
               <option value="">Select status</option>
-              {SELLER_STATUSES.map((s) => (
+              {SELLER_ORDER_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
