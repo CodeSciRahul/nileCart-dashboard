@@ -1,20 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signOut,
-} from "firebase/auth";
-import { auth, googleProvider } from "../lib/firebase.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getDefaultRouteForUser } from "../lib/redirect.js";
 import { setStoredLoginType } from "../lib/authStorage.js";
 import {
-  registerSellerAccount,
-  sendSellerSignupOtp,
-  verifySellerSignupOtp,
+  sendDashboardOtp,
+  verifyDashboardOtp,
 } from "../services/authService.js";
 import { showErrorToast } from "../lib/toast.js";
 import { isValidEmail } from "../lib/emailValidation.js";
@@ -24,54 +15,32 @@ import { toast } from "sonner";
 const OTP_SENT_MESSAGE = "An OTP has been sent to your email, please verify.";
 
 export const mapAuthError = (err) => {
-  const code = err?.code || "";
-  const messages = {
-    "auth/invalid-email": "Please enter a valid email address.",
-    "auth/user-not-found": "No account found with this email.",
-    "auth/wrong-password": "Incorrect password. Try again.",
-    "auth/invalid-credential": "Invalid email or password.",
-    "auth/email-already-in-use": "An account already exists with this email.",
-    "auth/weak-password": "Password should be at least 6 characters.",
-    "auth/popup-closed-by-user": "Sign-in popup was closed.",
-    "auth/too-many-requests": "Too many requests. Please try again later.",
-  };
-  return messages[code] || err?.message || "Something went wrong.";
+  return err?.message || "Something went wrong.";
 };
 
-export function useAuthForm(mode) {
+export function useAuthForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { establishBackendSession } = useAuth();
   const redirectTo = location.state?.from;
 
-  const isSignUp = mode === "signup";
-
   const [loginType, setLoginType] = useState("seller");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
-  const [signupPhase, setSignupPhase] = useState("credentials");
-  const [pendingVerification, setPendingVerification] = useState(false);
+  const [step, setStep] = useState("email"); // email | otp
   const [otpBanner, setOtpBanner] = useState("");
   const [loading, setLoading] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [sendingResetEmail, setSendingResetEmail] = useState(false);
   const { secondsLeft, isCoolingDown, startCooldown } = useResendCooldown();
 
-  const isSellerSignup = isSignUp && loginType === "seller";
-  const showOtpStep = isSellerSignup && signupPhase === "otp";
-  const showOtpFromSignin = !isSignUp && loginType === "seller" && pendingVerification;
-  const showCredentialsForm =
-    !showOtpStep && !showOtpFromSignin && !showForgotPassword;
+  const showOtpStep = step === "otp";
+  const showCredentialsForm = step === "email";
 
   const resetVerificationState = () => {
     setOtp("");
-    setSignupPhase("credentials");
-    setPendingVerification(false);
     setOtpBanner("");
-    setShowForgotPassword(false);
+    setStep("email");
   };
 
   const handleLoginTypeChange = (type) => {
@@ -79,12 +48,18 @@ export function useAuthForm(mode) {
     resetVerificationState();
   };
 
-  const finishAuth = async (firebaseUser) => {
-    const token = await firebaseUser.getIdToken();
+  const handleChangeEmail = () => {
+    resetVerificationState();
+  };
+
+  const finishAuth = async ({ email, otp }) => {
     setStoredLoginType(loginType);
 
     try {
-      const user = await establishBackendSession(token, loginType);
+      const user = await establishBackendSession(
+        (type) => verifyDashboardOtp({ email: email.trim(), otp, loginType: type }),
+        loginType
+      );
 
       if (loginType === "admin") {
         navigate(redirectTo || "/admin", { replace: true });
@@ -98,62 +73,30 @@ export function useAuthForm(mode) {
 
       navigate(redirectTo || getDefaultRouteForUser(user), { replace: true });
     } catch (err) {
-      if (!(err.status === 403 && loginType === "seller")) {
-        await signOut(auth);
-      }
       throw err;
     }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleSendOtp = async (e) => {
+    e?.preventDefault();
     setLoading(true);
+    setSendingOtp(true);
     try {
       if (!isValidEmail(email)) {
         showErrorToast(null, "Please enter a valid email address.");
         return;
       }
 
-      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      const firebaseToken = await cred.user.getIdToken();
-      const data = await registerSellerAccount(firebaseToken);
-
-      if (data.requiresVerification) {
-        setSignupPhase("otp");
-        setOtpBanner(data.message || OTP_SENT_MESSAGE);
-        startCooldown();
-        toast.success(data.message || OTP_SENT_MESSAGE);
-        return;
-      }
-
-      await finishAuth(cred.user);
+      const data = await sendDashboardOtp({ email: email.trim(), loginType });
+      setOtp("");
+      setOtpBanner(data.message || OTP_SENT_MESSAGE);
+      setStep("otp");
+      startCooldown();
+      toast.success(data.message || OTP_SENT_MESSAGE);
     } catch (err) {
-      showErrorToast(err, mapAuthError(err));
+      showErrorToast(err);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignIn = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (!isValidEmail(email)) {
-        showErrorToast(null, "Please enter a valid email address.");
-        return;
-      }
-
-      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-      await finishAuth(cred.user);
-    } catch (err) {
-      if (err.status === 403 && loginType === "seller") {
-        setPendingVerification(true);
-        setOtpBanner(err.message || OTP_SENT_MESSAGE);
-        startCooldown();
-        return;
-      }
-      showErrorToast(err, mapAuthError(err));
-    } finally {
+      setSendingOtp(false);
       setLoading(false);
     }
   };
@@ -170,7 +113,7 @@ export function useAuthForm(mode) {
 
     setSendingOtp(true);
     try {
-      const data = await sendSellerSignupOtp(email.trim());
+      const data = await sendDashboardOtp({ email: email.trim(), loginType });
       setOtpBanner(data.message || OTP_SENT_MESSAGE);
       startCooldown();
       toast.success(data.message || OTP_SENT_MESSAGE);
@@ -178,29 +121,6 @@ export function useAuthForm(mode) {
       showErrorToast(err);
     } finally {
       setSendingOtp(false);
-    }
-  };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-
-    if (!isValidEmail(email)) {
-      showErrorToast(null, "Please enter a valid email address.");
-      return;
-    }
-
-    setSendingResetEmail(true);
-    try {
-      await sendPasswordResetEmail(auth, email.trim(), {
-        url: `${window.location.origin}/login`,
-        handleCodeInApp: false,
-      });
-      toast.success("Password reset link sent. Check your email inbox.");
-      setShowForgotPassword(false);
-    } catch (err) {
-      showErrorToast(err, mapAuthError(err));
-    } finally {
-      setSendingResetEmail(false);
     }
   };
 
@@ -212,12 +132,7 @@ export function useAuthForm(mode) {
 
     setVerifyingOtp(true);
     try {
-      await verifySellerSignupOtp(email.trim(), otp.trim());
-      toast.success("Email verified successfully. Signing you in...");
-
-      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-      resetVerificationState();
-      await finishAuth(cred.user);
+      await finishAuth({ email, otp: otp.trim() });
     } catch (err) {
       showErrorToast(err);
     } finally {
@@ -226,56 +141,31 @@ export function useAuthForm(mode) {
   };
 
   const handleGoogle = async () => {
-    setLoading(true);
     try {
-      const cred = await signInWithPopup(auth, googleProvider);
-
-      if (isSellerSignup) {
-        const firebaseToken = await cred.user.getIdToken();
-        const data = await registerSellerAccount(firebaseToken);
-
-        if (data.requiresVerification) {
-          setSignupPhase("otp");
-          setOtpBanner(data.message || OTP_SENT_MESSAGE);
-          startCooldown();
-          return;
-        }
-      }
-
-      await finishAuth(cred.user);
+      toast.error("Google sign-in has been removed. Please use OTP login.");
     } catch (err) {
       showErrorToast(err, mapAuthError(err));
-    } finally {
-      setLoading(false);
     }
   };
 
   return {
     loginType,
     handleLoginTypeChange,
+    handleChangeEmail,
     email,
     setEmail,
-    password,
-    setPassword,
     otp,
     setOtp,
     otpBanner,
     loading,
     sendingOtp,
     verifyingOtp,
-    showForgotPassword,
-    setShowForgotPassword,
-    sendingResetEmail,
     secondsLeft,
     isCoolingDown,
-    isSellerSignup,
     showOtpStep,
-    showOtpFromSignin,
     showCredentialsForm,
-    handleRegister,
-    handleSignIn,
+    handleSendOtp,
     handleResendOtp,
-    handleForgotPassword,
     handleVerifyOtp,
     handleGoogle,
   };

@@ -1,6 +1,5 @@
 import { Button, ButtonLink } from "../components/ui/button.jsx";
 import { Input } from "../components/ui/input.jsx";
-import { PasswordInput } from "../components/ui/password-input.jsx";
 import { Label } from "../components/ui/label.jsx";
 import {
   Card,
@@ -22,8 +21,6 @@ export default function SignUp() {
     handleLoginTypeChange,
     email,
     setEmail,
-    password,
-    setPassword,
     otp,
     setOtp,
     otpBanner,
@@ -34,19 +31,19 @@ export default function SignUp() {
     isCoolingDown,
     showOtpStep,
     showCredentialsForm,
-    handleRegister,
+    handleSendOtp,
     handleResendOtp,
     handleVerifyOtp,
     handleGoogle,
-  } = useAuthForm("signup");
+  } = useAuthForm();
 
   const isSeller = loginType === "seller";
 
   const description = !isSeller
     ? "Seller accounts can be created here. Admin accounts are provisioned separately."
     : showOtpStep
-      ? "Enter the OTP sent to your email to activate your account."
-      : "Create your seller account with email and password.";
+      ? "Enter the OTP sent to your email to continue."
+      : "Enter your email and we’ll send you a login code.";
 
   return (
     <AuthLayout>
@@ -87,7 +84,7 @@ export default function SignUp() {
 
           {isSeller && showCredentialsForm && (
             <>
-              <form onSubmit={handleRegister} className="space-y-3">
+              <form onSubmit={handleSendOtp} className="space-y-3">
                 <div className="space-y-1">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -99,19 +96,8 @@ export default function SignUp() {
                     required
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="password">Password</Label>
-                  <PasswordInput
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Please wait..." : "Create account"}
+                  {loading ? "Please wait..." : "Send OTP"}
                 </Button>
               </form>
 
@@ -131,7 +117,7 @@ export default function SignUp() {
               </Button>
 
               <p className="text-xs leading-relaxed text-muted-foreground">
-                After registration, you must verify your email with an OTP before you can sign in.
+                OTP-only sign-in is enabled for the dashboard.
               </p>
             </>
           )}

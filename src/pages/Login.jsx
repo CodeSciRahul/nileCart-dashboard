@@ -1,6 +1,5 @@
 import { Button } from "../components/ui/button.jsx";
 import { Input } from "../components/ui/input.jsx";
-import { PasswordInput } from "../components/ui/password-input.jsx";
 import { Label } from "../components/ui/label.jsx";
 import {
   Card,
@@ -22,35 +21,26 @@ export default function Login() {
     handleLoginTypeChange,
     email,
     setEmail,
-    password,
-    setPassword,
     otp,
     setOtp,
     otpBanner,
     loading,
     sendingOtp,
     verifyingOtp,
-    showForgotPassword,
-    setShowForgotPassword,
-    sendingResetEmail,
     secondsLeft,
     isCoolingDown,
-    showOtpFromSignin,
     showCredentialsForm,
-    handleSignIn,
+    showOtpStep,
+    handleSendOtp,
     handleResendOtp,
-    handleForgotPassword,
     handleVerifyOtp,
     handleGoogle,
-  } = useAuthForm("signin");
+  } = useAuthForm();
 
-  const description = showForgotPassword
-    ? "Enter your account email and we will send you a password reset link."
-    : loginType === "admin"
-      ? "Sign in to the admin panel."
-      : showOtpFromSignin
-        ? "Enter the OTP sent to your email to activate your account."
-        : "Sign in with your seller credentials.";
+  const description =
+    loginType === "admin"
+      ? "Sign in to the admin panel with an email verification code."
+      : "Sign in to your seller account with an email verification code.";
 
   return (
     <AuthLayout>
@@ -64,7 +54,7 @@ export default function Login() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {showOtpFromSignin && (
+          {showOtpStep && (
             <OtpVerificationSection
               otp={otp}
               onOtpChange={setOtp}
@@ -78,36 +68,9 @@ export default function Login() {
             />
           )}
 
-          {showForgotPassword && (
-            <form onSubmit={handleForgotPassword} className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="reset-email">Email</Label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={sendingResetEmail}>
-                {sendingResetEmail ? "Sending..." : "Send reset link"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => setShowForgotPassword(false)}
-              >
-                Back to sign in
-              </Button>
-            </form>
-          )}
-
           {showCredentialsForm && (
             <>
-              <form onSubmit={handleSignIn} className="space-y-3">
+              <form onSubmit={handleSendOtp} className="space-y-3">
                 <div className="space-y-1">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -119,32 +82,12 @@ export default function Login() {
                     required
                   />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <button
-                      type="button"
-                      className="text-xs font-medium text-brand-amber hover:underline"
-                      onClick={() => setShowForgotPassword(true)}
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <PasswordInput
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    autoComplete="current-password"
-                  />
-                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading
                     ? "Please wait..."
                     : loginType === "admin"
-                      ? "Sign in as admin"
-                      : "Sign in"}
+                      ? "Send OTP to sign in"
+                      : "Send OTP to sign in"}
                 </Button>
               </form>
 
@@ -169,14 +112,14 @@ export default function Login() {
 
               {loginType === "seller" && (
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Unverified accounts cannot sign in until email verification is complete.
+                  You’ll receive a 6-digit verification code by email.
                 </p>
               )}
             </>
           )}
         </CardContent>
 
-        {!showForgotPassword && (
+        {showCredentialsForm && (
           <CardFooter className="border-t border-brand-amber/10 pt-6">
             {loginType === "seller" ? (
               <AuthFooter variant="login" />

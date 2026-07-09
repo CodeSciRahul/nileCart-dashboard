@@ -4,8 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { GuestRoute, ProtectedRoute, LoadingScreen } from "./components/ProtectedRoute.jsx";
 import { getDefaultRouteForUser } from "./lib/redirect.js";
 import { setUnauthorizedHandler } from "./lib/api.js";
-import Login from "./pages/Login.jsx";
-import SignUp from "./pages/SignUp.jsx";
+import Auth from "./pages/Auth.jsx";
 import SellerHome from "./pages/seller/SellerHome.jsx";
 import Onboarding from "./pages/seller/Onboarding.jsx";
 import Profile from "./pages/seller/Profile.jsx";
@@ -34,7 +33,7 @@ function RootRedirect() {
     return <LoadingScreen />;
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/auth" replace />;
 
   return <Navigate to={getDefaultRouteForUser(user)} replace />;
 }
@@ -45,41 +44,210 @@ function AppRoutes() {
   useEffect(() => {
     setUnauthorizedHandler(() => {
       logout();
-      window.location.href = "/login";
+      window.location.href = "/auth";
     });
   }, [logout]);
 
   return (
     <Routes>
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
+      <Route path="/auth" element={<GuestRoute><Auth /></GuestRoute>} />
+      <Route path="/login" element={<Navigate to="/auth" replace />} />
+      <Route path="/signup" element={<Navigate to="/auth" replace />} />
       <Route path="/" element={<RootRedirect />} />
 
-      <Route path="/seller" element={<SellerHome />} />
-      <Route path="/seller/onboarding" element={<Onboarding />} />
-      <Route path="/seller/profile" element={<Profile />} />
-      <Route path="/seller/products" element={<Products />} />
-      <Route path="/seller/products/new" element={<ProductForm />} />
-      <Route path="/seller/products/:id/edit" element={<ProductForm />} />
-      <Route path="/seller/orders" element={<Orders />} />
-      <Route path="/seller/orders/:id" element={<OrderDetail />} />
+      <Route
+        path="/seller"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <SellerHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/onboarding"
+        element={
+          <ProtectedRoute roles={["seller"]}>
+            <Onboarding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/profile"
+        element={
+          <ProtectedRoute roles={["seller"]}>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/products"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/products/new"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <ProductForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/products/:id/edit"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <ProductForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/orders"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <Orders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/seller/orders/:id"
+        element={
+          <ProtectedRoute roles={["seller"]} requireApprovedSeller>
+            <OrderDetail />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/admin" element={<AdminHome />} />
-      <Route path="/admin/sellers" element={<Sellers />} />
-      <Route path="/admin/seller/:id" element={<AdminSellerDetail />} />
-      <Route path="/admin/users" element={<Users />} />
-      <Route path="/admin/orders" element={<AdminOrders />} />
-      <Route path="/admin/coupons" element={<CouponsList />} />
-      <Route path="/admin/coupons/new" element={<AdminCouponForm />} />
-      <Route path="/admin/coupons/:id/edit" element={<AdminCouponForm />} />
-      <Route path="/admin/banners" element={<Banners />} />
-      <Route path="/admin/announcements" element={<AnnouncementsList />} />
-      <Route path="/admin/announcements/new" element={<AdminAnnouncementForm />} />
-      <Route path="/admin/announcements/:id/edit" element={<AdminAnnouncementForm />} />
-      <Route path="/admin/categories" element={<AdminCategoriesList />} />
-      <Route path="/admin/categories/new" element={<AdminCategoryForm />} />
-      <Route path="/admin/categories/:id/edit" element={<AdminCategoryForm />} />
-      <Route path="/admin/payouts" element={<Payouts />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/sellers"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <Sellers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/seller/:id"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminSellerDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <Users />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/coupons"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <CouponsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/coupons/new"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminCouponForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/coupons/:id/edit"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminCouponForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/banners"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <Banners />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/announcements"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AnnouncementsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/announcements/new"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminAnnouncementForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/announcements/:id/edit"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminAnnouncementForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/categories"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminCategoriesList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/categories/new"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminCategoryForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/categories/:id/edit"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminCategoryForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/payouts"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <Payouts />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -1,5 +1,5 @@
 export const getDefaultRouteForUser = (user) => {
-  if (!user) return "/login";
+  if (!user) return "/auth";
 
   if (user.role === "admin") return "/admin";
 
@@ -9,7 +9,7 @@ export const getDefaultRouteForUser = (user) => {
     return "/seller/profile";
   }
 
-  return "/login";
+  return "/auth";
 };
 
 export const isApprovedSeller = (user) =>
