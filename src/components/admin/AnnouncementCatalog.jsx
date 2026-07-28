@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Button, ButtonLink } from "@/components/ui/button.jsx";
 import { Card } from "@/components/ui/card.jsx";
 import { formatSchedule } from "@/lib/announcementUtils.js";
+import { ANNOUNCEMENT_TYPES } from "@/constants/marketing.js";
 import {
   CalendarClock,
   Edit3,
@@ -14,6 +15,10 @@ import {
   Trash2,
   TrendingUp,
 } from "lucide-react";
+
+function typeLabel(type) {
+  return ANNOUNCEMENT_TYPES.find((t) => t.value === type)?.label || type || "Top bar";
+}
 
 function AnnouncementCard({
   announcement,
@@ -47,6 +52,7 @@ function AnnouncementCard({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="default">{typeLabel(announcement.type)}</Badge>
             <Badge variant="default" className="gap-1">
               <TrendingUp className="size-3" />
               Priority {announcement.priority ?? 0}
@@ -102,7 +108,7 @@ function AnnouncementCard({
             onClick={() => onDelete(announcement._id)}
           >
             <Trash2 className="size-3.5" />
-            Delete
+            Deactivate
           </Button>
         </div>
       </div>

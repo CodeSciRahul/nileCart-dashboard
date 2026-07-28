@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/ui/button.jsx";
 import { AnnouncementCatalog } from "@/components/admin/AnnouncementCatalog.jsx";
 import {
   listAnnouncements,
-  updateAnnouncement,
+  toggleAnnouncementStatus,
   deleteAnnouncement,
 } from "@/services/adminService.js";
 import { queryKeys } from "@/lib/queryKeys.js";
@@ -27,7 +27,7 @@ function AnnouncementsListPage() {
   };
 
   const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }) => updateAnnouncement(id, { isActive }),
+    mutationFn: ({ id, isActive }) => toggleAnnouncementStatus(id, { isActive }),
     onSuccess: () => invalidate(),
     onError: (err) => toast.error(err.message),
   });
@@ -35,7 +35,7 @@ function AnnouncementsListPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteAnnouncement,
     onSuccess: () => {
-      toast.success("Announcement deleted");
+      toast.success("Announcement deactivated");
       invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -44,7 +44,7 @@ function AnnouncementsListPage() {
   const announcements = data?.announcements || [];
 
   const handleDelete = (id) => {
-    if (window.confirm("Delete this announcement?")) {
+    if (window.confirm("Deactivate this announcement?")) {
       deleteMutation.mutate(id);
     }
   };

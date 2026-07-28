@@ -48,6 +48,9 @@ export const toggleBannerStatus = (id, payload) =>
 
 export const deleteBanner = (id) => apiClient.delete(`/admin/banners/${id}`);
 
+export const reorderBanners = (payload) =>
+  apiClient.put("/admin/banners/reorder", payload);
+
 export const listAdminCategories = (params) =>
   apiClient.get("/admin/categories", { params });
 
@@ -70,3 +73,6 @@ export const updateAnnouncement = (id, payload) =>
 
 export const deleteAnnouncement = (id) =>
   apiClient.delete(`/admin/announcements/${id}`);
+
+export const toggleAnnouncementStatus = (id, payload) =>
+  apiClient.patch(`/admin/announcements/${id}/status`, payload);

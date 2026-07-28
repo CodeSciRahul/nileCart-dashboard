@@ -20,6 +20,7 @@ import AdminOrders from "./pages/admin/AdminOrders.jsx";
 import CouponsList from "./pages/admin/CouponsList.jsx";
 import AdminCouponForm from "./pages/admin/CouponFormPage.jsx";
 import Banners from "./pages/admin/Banners.jsx";
+import AdminBannerForm from "./pages/admin/BannerForm.jsx";
 import AnnouncementsList from "./pages/admin/AnnouncementsList.jsx";
 import AdminAnnouncementForm from "./pages/admin/AnnouncementForm.jsx";
 import AdminCategoriesList from "./pages/admin/AdminCategoriesList.jsx";
@@ -189,6 +190,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["admin"]}>
             <Banners />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/banners/new"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminBannerForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/banners/:id/edit"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <AdminBannerForm />
           </ProtectedRoute>
         }
       />

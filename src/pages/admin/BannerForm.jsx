@@ -5,85 +5,83 @@ import { ArrowLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout.jsx";
 import { ProtectedRoute } from "@/components/ProtectedRoute.jsx";
 import { ButtonLink } from "@/components/ui/button.jsx";
-import { AnnouncementForm } from "@/components/admin/AnnouncementForm.jsx";
+import { BannerForm } from "@/components/admin/BannerForm.jsx";
 import { AnnouncementFormGuideSidebar } from "@/components/admin/AnnouncementFormGuideSidebar.jsx";
 import {
-  listAnnouncements,
-  createAnnouncement,
-  updateAnnouncement,
+  listBanners,
+  createBanner,
+  updateBanner,
 } from "@/services/adminService.js";
 import {
-  buildAnnouncementPayload,
-  emptyAnnouncementForm,
-  announcementFromApi,
-} from "@/lib/announcementUtils.js";
+  buildBannerPayload,
+  bannerFromApi,
+  emptyBannerForm,
+} from "@/lib/bannerUtils.js";
 import { queryKeys } from "@/lib/queryKeys.js";
-import { ANNOUNCEMENT_GUIDE_STEPS } from "@/constants/announcementForm.js";
+import { BANNER_GUIDE_STEPS } from "@/constants/marketing.js";
 import { toast } from "sonner";
 
-function AnnouncementFormPage() {
+function BannerFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const editId = id || null;
   const isEdit = Boolean(editId);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [form, setForm] = useState(emptyAnnouncementForm);
+  const [form, setForm] = useState(emptyBannerForm);
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.admin.announcements,
-    queryFn: listAnnouncements,
+    queryKey: queryKeys.admin.banners,
+    queryFn: listBanners,
   });
 
-  const announcements = data?.announcements || [];
+  const banners = data?.banners || [];
 
   useEffect(() => {
     if (!isEdit || isLoading) return;
-
-    const announcement = announcements.find((a) => a._id === editId);
-    if (!announcement) return;
-
-    setForm(announcementFromApi(announcement));
-  }, [isEdit, editId, announcements, isLoading]);
+    const banner = banners.find((b) => b._id === editId);
+    if (!banner) return;
+    setForm(bannerFromApi(banner));
+  }, [isEdit, editId, banners, isLoading]);
 
   const saveMutation = useMutation({
     mutationFn: (payload) =>
-      editId ? updateAnnouncement(editId, payload) : createAnnouncement(payload),
+      editId ? updateBanner(editId, payload) : createBanner(payload),
     onSuccess: () => {
-      toast.success(editId ? "Announcement updated" : "Announcement created");
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.announcements });
-      navigate("/admin/announcements");
+      toast.success(editId ? "Banner updated" : "Banner created");
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.banners });
+      navigate("/admin/banners");
     },
     onError: (err) => toast.error(err.message),
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.message.trim()) {
-      toast.error("Message is required.");
+    if (!form.title.trim()) {
+      toast.error("Title is required.");
       return;
     }
-    saveMutation.mutate(buildAnnouncementPayload(form));
-  };
-
-  const handleCancel = () => {
-    navigate("/admin/announcements");
+    if (!form.image) {
+      toast.error("Desktop banner image is required.");
+      return;
+    }
+    saveMutation.mutate(buildBannerPayload(form));
   };
 
   return (
     <DashboardLayout
-      title={isEdit ? "Edit Announcement" : "Create Announcement"}
+      title={isEdit ? "Edit Banner" : "Create Banner"}
       variant="admin"
     >
       <div className="w-full">
         <ButtonLink
           variant="ghost"
           size="sm"
-          to="/admin/announcements"
+          to="/admin/banners"
           className="-ml-2 gap-1.5 text-brand-gray hover:bg-brand-cream/60 hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          Back to all announcements
+          Back to all banners
         </ButtonLink>
 
         <div className="mt-6 w-full">
@@ -93,16 +91,15 @@ function AnnouncementFormPage() {
               <div className="mt-8 space-y-4">
                 <div className="h-24 rounded-lg bg-brand-cream" />
                 <div className="h-10 rounded-lg bg-brand-cream" />
-                <div className="h-10 rounded-lg bg-brand-cream" />
               </div>
             </div>
           ) : (
-            <AnnouncementForm
+            <BannerForm
               form={form}
               setForm={setForm}
               isEdit={isEdit}
               onSubmit={handleSubmit}
-              onCancel={handleCancel}
+              onCancel={() => navigate("/admin/banners")}
               isPending={saveMutation.isPending}
               onOpenGuide={() => setGuideOpen(true)}
             />
@@ -114,19 +111,19 @@ function AnnouncementFormPage() {
         open={guideOpen}
         onClose={() => setGuideOpen(false)}
         isEdit={isEdit}
-        steps={ANNOUNCEMENT_GUIDE_STEPS}
-        eyebrow={isEdit ? "Update announcement" : "New announcement"}
-        title={isEdit ? "Refine your banner" : "Reach your customers"}
-        intro="Announcements appear as banner messages on the NileCart storefront. Use them for promotions, welcome messages, or important updates."
+        steps={BANNER_GUIDE_STEPS}
+        eyebrow={isEdit ? "Update banner" : "New banner"}
+        title={isEdit ? "Refine your campaign" : "Launch a visual campaign"}
+        intro="Banners power the NileCart homepage hero and promotional placements. Schedule and target them so marketing goes live without code changes."
       />
     </DashboardLayout>
   );
 }
 
-export default function AdminAnnouncementForm() {
+export default function AdminBannerForm() {
   return (
     <ProtectedRoute roles={["admin"]}>
-      <AnnouncementFormPage />
+      <BannerFormPage />
     </ProtectedRoute>
   );
 }

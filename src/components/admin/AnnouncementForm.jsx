@@ -3,6 +3,12 @@ import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Textarea } from "@/components/ui/textarea.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
+import {
+  DeepLinkFields,
+  TargetingFields,
+  selectClass,
+} from "@/components/admin/MarketingFields.jsx";
+import { ANNOUNCEMENT_TYPES } from "@/constants/marketing.js";
 import { cn } from "@/lib/utils";
 import { CircleHelp, Megaphone, Palette, Sparkles } from "lucide-react";
 
@@ -97,7 +103,7 @@ export function AnnouncementForm({
               </CardTitle>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 {isEdit
-                  ? "Update the announcement message, styling, and schedule."
+                  ? "Update the announcement message, targeting, and schedule."
                   : "Publish a storefront banner message for customers to see."}
               </p>
             </div>
@@ -123,6 +129,19 @@ export function AnnouncementForm({
             title="Message"
             description="The text shown in the storefront announcement bar."
           >
+            <Field label="Type">
+              <select
+                className={selectClass}
+                value={form.type || "top_bar"}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              >
+                {ANNOUNCEMENT_TYPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
             <Field label="Message *">
               <Textarea
                 value={form.message}
@@ -163,6 +182,20 @@ export function AnnouncementForm({
             </div>
           </FormSection>
 
+          <FormSection title="Link" description="Optional destination when customers tap the bar.">
+            <DeepLinkFields
+              value={form.deepLink}
+              onChange={(deepLink) => setForm((f) => ({ ...f, deepLink }))}
+            />
+            <Field label="Legacy link URL" hint="Optional fallback if deep link is empty.">
+              <Input
+                value={form.link || ""}
+                onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))}
+                placeholder="/sale or https://..."
+              />
+            </Field>
+          </FormSection>
+
           <FormSection
             title="Scheduling & priority"
             description="Control when the announcement appears and its display order."
@@ -193,22 +226,42 @@ export function AnnouncementForm({
             </div>
           </FormSection>
 
+          <FormSection title="Targeting" description="Control who sees this announcement.">
+            <TargetingFields
+              value={form.targeting}
+              onChange={(targeting) => setForm((f) => ({ ...f, targeting }))}
+            />
+          </FormSection>
+
           <FormSection title="Status" description="Toggle visibility on the storefront.">
-            <label className="flex w-full max-w-sm cursor-pointer items-center gap-3 rounded-xl border border-brand-amber/15 bg-brand-cream/30 px-4 py-3 transition-colors hover:bg-brand-cream/50">
-              <input
-                type="checkbox"
-                checked={form.isActive}
-                onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-                className="size-4 accent-brand-amber"
-              />
-              <span className="text-sm font-medium">Active</span>
-            </label>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <label className="flex w-full max-w-sm cursor-pointer items-center gap-3 rounded-xl border border-brand-amber/15 bg-brand-cream/30 px-4 py-3 transition-colors hover:bg-brand-cream/50">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+                  className="size-4 accent-brand-amber"
+                />
+                <span className="text-sm font-medium">Active</span>
+              </label>
+              <label className="flex w-full max-w-sm cursor-pointer items-center gap-3 rounded-xl border border-brand-amber/15 bg-brand-cream/30 px-4 py-3 transition-colors hover:bg-brand-cream/50">
+                <input
+                  type="checkbox"
+                  checked={form.dismissible !== false}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, dismissible: e.target.checked }))
+                  }
+                  className="size-4 accent-brand-amber"
+                />
+                <span className="text-sm font-medium">Dismissible</span>
+              </label>
+            </div>
           </FormSection>
 
           <div className="flex flex-col-reverse gap-2 border-t border-brand-amber/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
               {isEdit
-                ? "Changes apply immediately on the storefront."
+                ? "Changes apply on the storefront after the next cache refresh (~60s)."
                 : "New announcements appear after creation when active."}
             </p>
             <div className="flex gap-2">
