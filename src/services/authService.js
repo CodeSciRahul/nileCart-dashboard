@@ -11,6 +11,9 @@ const finalizeAuth = (data, loginType) => {
   return data;
 };
 
+export const lookupAuthMethods = ({ email, loginType }) =>
+  apiClient.post("/auth/lookup", { email, role: loginType });
+
 export const sendDashboardOtp = ({ email, loginType }) =>
   apiClient.post("/auth/dashboard/send-otp", { email, loginType });
 
@@ -29,7 +32,6 @@ export const sendSellerSignupOtp = (email) =>
 export const verifySellerSignupOtp = (email, otp) =>
   apiClient.post("/auth/seller/verify-otp", { email, otp });
 
-// Legacy password-based login is intentionally not used by the dashboard UI anymore.
 export const loginSeller = async ({ email, password }) =>
   finalizeAuth(await apiClient.post("/auth/login/seller", { email, password }), "seller");
 
@@ -38,6 +40,33 @@ export const loginAdmin = async ({ email, password, mobileNumber }) =>
     await apiClient.post("/auth/login/admin", { email, password, mobileNumber }),
     "admin"
   );
+
+export const setPassword = ({ password, confirmPassword }) =>
+  apiClient.post("/auth/set-password", { password, confirmPassword });
+
+export const changePassword = ({ currentPassword, newPassword, confirmPassword }) =>
+  apiClient.post("/auth/change-password", { currentPassword, newPassword, confirmPassword });
+
+export const sendForgotPasswordOtp = ({ email, loginType }) =>
+  apiClient.post("/auth/forgot-password/send-otp", { email, role: loginType });
+
+export const verifyForgotPasswordOtp = ({ email, otp }) =>
+  apiClient.post("/auth/forgot-password/verify-otp", { email, otp });
+
+export const resetPassword = ({
+  resetToken,
+  email,
+  otp,
+  newPassword,
+  confirmPassword,
+}) =>
+  apiClient.post("/auth/forgot-password/reset", {
+    resetToken,
+    email,
+    otp,
+    newPassword,
+    confirmPassword,
+  });
 
 export const fetchProfile = () => apiClient.get("/users/me");
 

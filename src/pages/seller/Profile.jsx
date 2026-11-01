@@ -28,6 +28,7 @@ import {
 } from "@/lib/storedImage.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { SecurityPasswordSection } from "@/components/seller/SecurityPasswordSection.jsx";
 import { toast } from "sonner";
 
 const emptyDocuments = EMPTY_SELLER_DOCUMENTS;
@@ -390,6 +391,8 @@ function ProfileForm() {
             </Button>
           </div>
         </form>
+
+        <SecurityPasswordSection />
       </div>
     </DashboardLayout>
   );
