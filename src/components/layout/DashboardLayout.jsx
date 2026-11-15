@@ -6,6 +6,7 @@ import {
   Package,
   FolderTree,
   FolderPlus,
+  LayoutTemplate,
   ShoppingCart,
   User,
   Users,
@@ -45,6 +46,8 @@ const adminNav = [
   { to: "/admin/announcements/new", label: "Create Announcement", icon: PlusCircle, matchCreate: true },
   { to: "/admin/categories", label: "All Categories", icon: FolderTree, exact: true },
   { to: "/admin/categories/new", label: "Create Category", icon: FolderPlus, matchCreate: true },
+  { to: "/admin/sections", label: "Home Sections", icon: LayoutTemplate, exact: true },
+  { to: "/admin/sections/new", label: "Create Section", icon: PlusCircle, matchCreate: true },
   { to: "/admin/payouts", label: "Payouts", icon: Wallet },
 ];
 

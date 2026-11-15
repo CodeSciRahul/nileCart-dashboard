@@ -25,6 +25,8 @@ import AnnouncementsList from "./pages/admin/AnnouncementsList.jsx";
 import AdminAnnouncementForm from "./pages/admin/AnnouncementForm.jsx";
 import AdminCategoriesList from "./pages/admin/AdminCategoriesList.jsx";
 import AdminCategoryForm from "./pages/admin/AdminCategoryForm.jsx";
+import HomeSectionsList from "./pages/admin/HomeSectionsList.jsx";
+import HomeSectionForm from "./pages/admin/HomeSectionForm.jsx";
 import Payouts from "./pages/admin/Payouts.jsx";
 
 function RootRedirect() {
@@ -264,6 +266,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["admin"]}>
             <AdminCategoryForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/sections"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <HomeSectionsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/sections/new"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <HomeSectionForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/sections/:id/edit"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <HomeSectionForm />
           </ProtectedRoute>
         }
       />

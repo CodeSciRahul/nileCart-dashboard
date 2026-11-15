@@ -76,3 +76,20 @@ export const deleteAnnouncement = (id) =>
 
 export const toggleAnnouncementStatus = (id, payload) =>
   apiClient.patch(`/admin/announcements/${id}/status`, payload);
+
+export const listHomeSections = () => apiClient.get("/admin/home-sections");
+
+export const createHomeSection = (payload) =>
+  apiClient.post("/admin/home-sections", payload);
+
+export const updateHomeSection = (id, payload) =>
+  apiClient.put(`/admin/home-sections/${id}`, payload);
+
+export const deleteHomeSection = (id) =>
+  apiClient.delete(`/admin/home-sections/${id}`);
+
+export const toggleHomeSectionStatus = (id, payload) =>
+  apiClient.patch(`/admin/home-sections/${id}/status`, payload);
+
+export const reorderHomeSections = (payload) =>
+  apiClient.put("/admin/home-sections/reorder", payload);

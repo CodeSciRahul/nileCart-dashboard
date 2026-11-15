@@ -9,6 +9,7 @@ import {
 export const PRODUCT_GENDER_OPTIONS = [
   { value: "Women", label: "Women" },
   { value: "Men", label: "Men" },
+  { value: "Unisex", label: "Unisex" },
 ];
 
 export const PRODUCT_FORM_GUIDE_STEPS = [

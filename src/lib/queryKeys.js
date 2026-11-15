@@ -19,6 +19,7 @@ export const queryKeys = {
     banners: ["admin", "banners"],
     announcements: ["admin", "announcements"],
     categories: ["admin", "categories"],
+    homeSections: ["admin", "homeSections"],
   },
   categories: {
     all: ["categories"],
