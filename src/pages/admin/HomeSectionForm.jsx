@@ -225,31 +225,37 @@ export default function HomeSectionForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="title" className="text-sm font-medium">
-                    Section Header / Title Text
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g. SPECIAL OFFER, Hot right now. Best Sellers., TRENDING NOW"
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  />
+              {form.type === "hero_banner" ? (
+                <div className="rounded-lg border border-brand-amber/25 bg-brand-cream/40 p-4 text-xs text-muted-foreground">
+                  <span className="font-bold text-foreground">Clean Hero Presentation:</span> Text overlay options are disabled for Hero Banners. Campaign images are displayed full-bleed edge-to-edge. Clicking on the banner will redirect users to the link specified below.
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="title" className="text-sm font-medium">
+                      Section Header / Title Text
+                    </Label>
+                    <Input
+                      id="title"
+                      placeholder="e.g. SPECIAL OFFER, Hot right now. Best Sellers., TRENDING NOW"
+                      value={form.title}
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    />
+                  </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="subtitle" className="text-sm font-medium">
-                    Subtitle / Eyebrow Text
-                  </Label>
-                  <Input
-                    id="subtitle"
-                    placeholder="e.g. FROM ₹390, NEW ARRIVALS, 20-60% OFF"
-                    value={form.subtitle}
-                    onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-                  />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="subtitle" className="text-sm font-medium">
+                      Subtitle / Eyebrow Text
+                    </Label>
+                    <Input
+                      id="subtitle"
+                      placeholder="e.g. FROM ₹390, NEW ARRIVALS, 20-60% OFF"
+                      value={form.subtitle}
+                      onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
@@ -264,21 +270,23 @@ export default function HomeSectionForm() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="ctaText" className="text-sm font-medium">
-                    CTA Button Text
-                  </Label>
-                  <Input
-                    id="ctaText"
-                    placeholder="SHOP NOW or SHOP CLEARANCE >"
-                    value={form.ctaText}
-                    onChange={(e) => setForm({ ...form, ctaText: e.target.value })}
-                  />
-                </div>
+                {form.type !== "hero_banner" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="ctaText" className="text-sm font-medium">
+                      CTA Button Text
+                    </Label>
+                    <Input
+                      id="ctaText"
+                      placeholder="SHOP NOW or SHOP CLEARANCE >"
+                      value={form.ctaText}
+                      onChange={(e) => setForm({ ...form, ctaText: e.target.value })}
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <Label htmlFor="ctaLink" className="text-sm font-medium">
-                    CTA Button Link
+                    {form.type === "hero_banner" ? "Hero Banner Click Redirect Link" : "CTA Button Link"}
                   </Label>
                   <Input
                     id="ctaLink"

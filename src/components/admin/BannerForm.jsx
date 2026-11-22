@@ -45,6 +45,8 @@ function BannerPreview({ form, mode }) {
       ? form.mobileImage?.url || form.image?.url
       : form.image?.url;
 
+  const isHero = form.type === "hero";
+
   if (!image && !form.title) {
     return (
       <div className="rounded-xl border border-dashed border-brand-amber/25 bg-brand-cream/30 px-4 py-10 text-center text-xs text-muted-foreground">
@@ -65,23 +67,32 @@ function BannerPreview({ form, mode }) {
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-cream to-brand-amber/20" />
       )}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
-      <div className="absolute inset-0 flex flex-col justify-center p-4 sm:p-6">
-        {form.subtitle && (
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-amber sm:text-xs">
-            {form.subtitle}
-          </p>
-        )}
-        <h4 className="mt-1 text-base font-black text-white sm:text-xl">
-          {form.title || "Banner title"}
-        </h4>
-        {form.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-white/85">{form.description}</p>
-        )}
-        <span className="mt-3 inline-flex w-fit rounded-full bg-brand-amber px-3 py-1 text-[10px] font-bold text-foreground">
-          {form.ctaText || "Shop Now"}
-        </span>
-      </div>
+
+      {isHero ? (
+        <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-xs text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg">
+          Click redirects to: <span className="text-[#fdd835]">{form.ctaLink || "/shop/all"}</span>
+        </div>
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/25 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-center p-4 sm:p-6">
+            {form.subtitle && (
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-amber sm:text-xs">
+                {form.subtitle}
+              </p>
+            )}
+            <h4 className="mt-1 text-base font-black text-white sm:text-xl">
+              {form.title || "Banner title"}
+            </h4>
+            {form.description && (
+              <p className="mt-1 line-clamp-2 text-xs text-white/85">{form.description}</p>
+            )}
+            <span className="mt-3 inline-flex w-fit rounded-full bg-brand-amber px-3 py-1 text-[10px] font-bold text-foreground">
+              {form.ctaText || "Shop Now"}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -131,43 +142,82 @@ export function BannerForm({
 
       <CardContent className="px-6 py-6">
         <form onSubmit={onSubmit} className="space-y-8">
-          <FormSection title="Content" description="Copy and type shown on the storefront.">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Type">
-                <select
-                  className={selectClass}
-                  value={form.type}
-                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+          {form.type === "hero" ? (
+            <FormSection
+              title="Hero Banner Settings"
+              description="Hero banners are image-only for clean, edge-to-edge presentation. Text overlays have been removed."
+            >
+              <div className="rounded-xl border border-brand-amber/25 bg-brand-cream/30 p-4 text-xs text-muted-foreground">
+                <span className="font-bold text-foreground">Image-Only Hero Section:</span> All text overlays (title, subtitle, buttons) are removed from the storefront. Clicking anywhere on the banner will redirect users to the link specified below.
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Type">
+                  <select
+                    className={selectClass}
+                    value={form.type}
+                    onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                  >
+                    {BANNER_TYPES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field
+                  label="Redirect Link URL *"
+                  hint="Where users should be redirected when they click this hero banner."
                 >
-                  {BANNER_TYPES.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Title *">
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  required
-                />
-              </Field>
-            </div>
-            <Field label="Subtitle">
-              <Input
-                value={form.subtitle}
-                onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
-              />
-            </Field>
-            <Field label="Description">
-              <Textarea
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="min-h-20"
-              />
-            </Field>
-          </FormSection>
+                  <Input
+                    value={form.ctaLink || ""}
+                    onChange={(e) => setForm((f) => ({ ...f, ctaLink: e.target.value }))}
+                    placeholder="/shop/all or /shop/men or /shop/women"
+                    required
+                  />
+                </Field>
+              </div>
+            </FormSection>
+          ) : (
+            <>
+              <FormSection title="Content" description="Copy and type shown on the storefront.">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Type">
+                    <select
+                      className={selectClass}
+                      value={form.type}
+                      onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                    >
+                      {BANNER_TYPES.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Title *">
+                    <Input
+                      value={form.title}
+                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                      required
+                    />
+                  </Field>
+                </div>
+                <Field label="Subtitle">
+                  <Input
+                    value={form.subtitle}
+                    onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
+                  />
+                </Field>
+                <Field label="Description">
+                  <Textarea
+                    value={form.description}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    className="min-h-20"
+                  />
+                </Field>
+              </FormSection>
+            </>
+          )}
 
           <FormSection title="Images" description="Desktop image is required; mobile is optional.">
             <div className="grid gap-4 md:grid-cols-2">
@@ -186,25 +236,27 @@ export function BannerForm({
             </div>
           </FormSection>
 
-          <FormSection title="Call to action" description="Button label and destination.">
-            <Field label="CTA text">
-              <Input
-                value={form.ctaText}
-                onChange={(e) => setForm((f) => ({ ...f, ctaText: e.target.value }))}
+          {form.type !== "hero" && (
+            <FormSection title="Call to action" description="Button label and destination.">
+              <Field label="CTA text">
+                <Input
+                  value={form.ctaText}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaText: e.target.value }))}
+                />
+              </Field>
+              <DeepLinkFields
+                value={form.deepLink}
+                onChange={(deepLink) => setForm((f) => ({ ...f, deepLink }))}
               />
-            </Field>
-            <DeepLinkFields
-              value={form.deepLink}
-              onChange={(deepLink) => setForm((f) => ({ ...f, deepLink }))}
-            />
-            <Field label="Legacy CTA URL" hint="Optional fallback URL if deep link is empty.">
-              <Input
-                value={form.ctaLink}
-                onChange={(e) => setForm((f) => ({ ...f, ctaLink: e.target.value }))}
-                placeholder="/sale or https://..."
-              />
-            </Field>
-          </FormSection>
+              <Field label="Legacy CTA URL" hint="Optional fallback URL if deep link is empty.">
+                <Input
+                  value={form.ctaLink}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaLink: e.target.value }))}
+                  placeholder="/sale or https://..."
+                />
+              </Field>
+            </FormSection>
+          )}
 
           <FormSection title="Schedule & order">
             <div className="grid gap-4 md:grid-cols-2">

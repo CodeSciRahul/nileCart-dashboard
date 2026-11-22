@@ -57,7 +57,7 @@ function BannerFormPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.title.trim()) {
+    if (form.type !== "hero" && !form.title?.trim()) {
       toast.error("Title is required.");
       return;
     }
@@ -65,7 +65,12 @@ function BannerFormPage() {
       toast.error("Desktop banner image is required.");
       return;
     }
-    saveMutation.mutate(buildBannerPayload(form));
+    saveMutation.mutate(
+      buildBannerPayload({
+        ...form,
+        title: form.title?.trim() || "Hero Banner",
+      })
+    );
   };
 
   return (
