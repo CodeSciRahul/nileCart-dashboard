@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button, ButtonLink } from "@/components/ui/button.jsx";
 import { Card } from "@/components/ui/card.jsx";
+import { Pagination } from "@/components/ui/pagination.jsx";
 import {
   SELLER_APPLICATION_TABS,
   SELLER_APPROVAL_STATUS_VARIANT,
@@ -77,6 +78,8 @@ export function SellerApplicationsCatalog({
   isLoading,
   activeTab,
   onTabChange,
+  pagination,
+  onPageChange,
 }) {
   const activeMeta = SELLER_APPLICATION_TABS.find((t) => t.id === activeTab);
 
@@ -150,16 +153,27 @@ export function SellerApplicationsCatalog({
           </div>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {sellers.map((seller, index) => (
-            <SellerCard
-              key={seller._id}
-              seller={seller}
-              index={index}
-              activeTab={activeTab}
+        <>
+          <div className="space-y-3">
+            {sellers.map((seller, index) => (
+              <SellerCard
+                key={seller._id}
+                seller={seller}
+                index={index}
+                activeTab={activeTab}
+              />
+            ))}
+          </div>
+
+          {pagination?.pages > 1 && (
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.pages}
+              totalItems={pagination.total}
+              onPageChange={onPageChange}
             />
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

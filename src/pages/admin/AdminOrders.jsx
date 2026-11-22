@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Pagination } from "@/components/ui/pagination.jsx";
 import { getAdminOrders, updateAdminOrderStatus } from "@/services/adminService.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
@@ -22,12 +23,18 @@ import { ALL_ORDER_STATUSES } from "@/constants/orderStatus.js";
 function AdminOrdersPage() {
   const queryClient = useQueryClient();
   const [filterStatus, setFilterStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [updateId, setUpdateId] = useState(null);
   const [newStatus, setNewStatus] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.admin.orders({ status: filterStatus }),
-    queryFn: () => getAdminOrders(filterStatus ? { status: filterStatus } : {}),
+    queryKey: queryKeys.admin.orders({ status: filterStatus, page }),
+    queryFn: () =>
+      getAdminOrders({
+        page,
+        limit: 10,
+        ...(filterStatus ? { status: filterStatus } : {}),
+      }),
   });
 
   const mutation = useMutation({
@@ -41,13 +48,19 @@ function AdminOrdersPage() {
   });
 
   const orders = data?.orders || [];
+  const pagination = data?.pagination || { page: 1, pages: 1, total: orders.length };
+
+  const handleStatusFilterChange = (status) => {
+    setFilterStatus(status);
+    setPage(1);
+  };
 
   return (
     <DashboardLayout title="Orders" variant="admin">
       <div className="mb-4">
         <Select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
+          onChange={(e) => handleStatusFilterChange(e.target.value)}
           className="w-48"
         >
           <option value="">All statuses</option>
@@ -62,7 +75,8 @@ function AdminOrdersPage() {
       {isLoading ? (
         <p className="text-muted-foreground text-sm">Loading...</p>
       ) : (
-        <Table>
+        <>
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Order #</TableHead>
@@ -117,7 +131,17 @@ function AdminOrdersPage() {
             ))}
           </TableBody>
         </Table>
-      )}
+
+        {pagination.pages > 1 && (
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.pages}
+            totalItems={pagination.total}
+            onPageChange={setPage}
+          />
+        )}
+      </>
+    )}
     </DashboardLayout>
   );
 }

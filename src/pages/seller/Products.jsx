@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout.jsx";
@@ -12,15 +13,18 @@ import {
   TableRow,
 } from "@/components/ui/table.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Pagination } from "@/components/ui/pagination.jsx";
 import { getMyProducts, deleteProduct, updateProduct } from "@/services/productService.js";
 import { queryKeys } from "@/lib/queryKeys.js";
 import { toast } from "sonner";
 
 function ProductsPage() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.seller.products({}),
-    queryFn: () => getMyProducts(),
+    queryKey: queryKeys.seller.products({ page }),
+    queryFn: () => getMyProducts({ page, limit: 10 }),
   });
 
   const removeMutation = useMutation({
@@ -42,6 +46,7 @@ function ProductsPage() {
   });
 
   const products = data?.products || [];
+  const pagination = data?.pagination || { page: 1, pages: 1, total: products.length };
 
   return (
     <DashboardLayout title="Products" variant="seller">
@@ -56,55 +61,66 @@ function ProductsPage() {
       ) : products.length === 0 ? (
         <p className="text-muted-foreground text-sm">No products yet.</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product._id}>
-                <TableCell>{product.title}</TableCell>
-                <TableCell>{product.category?.name || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant={product.isActive ? "success" : "secondary"}>
-                    {product.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="space-x-2 text-right">
-                  <Link to={`/seller/products/${product._id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
-                  </Link>
-                  {product.isActive ? (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={removeMutation.isPending}
-                      onClick={() => removeMutation.mutate(product._id)}
-                    >
-                      Deactivate
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={activateMutation.isPending}
-                      onClick={() => activateMutation.mutate(product._id)}
-                    >
-                      Activate
-                    </Button>
-                  )}
-                </TableCell>
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {products.map((product) => (
+                <TableRow key={product._id}>
+                  <TableCell>{product.title}</TableCell>
+                  <TableCell>{product.category?.name || "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant={product.isActive ? "success" : "secondary"}>
+                      {product.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="space-x-2 text-right">
+                    <Link to={`/seller/products/${product._id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        Edit
+                      </Button>
+                    </Link>
+                    {product.isActive ? (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={removeMutation.isPending}
+                        onClick={() => removeMutation.mutate(product._id)}
+                      >
+                        Deactivate
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={activateMutation.isPending}
+                        onClick={() => activateMutation.mutate(product._id)}
+                      >
+                        Activate
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {pagination.pages > 1 && (
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.pages}
+              totalItems={pagination.total}
+              onPageChange={setPage}
+            />
+          )}
+        </>
       )}
     </DashboardLayout>
   );
