@@ -97,10 +97,10 @@ function HomeSectionsListPage() {
               className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-xs transition hover:border-brand-amber/40 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-center gap-4">
-                {section.image?.url ? (
+                {section.image?.url || section.items?.[0]?.image?.url ? (
                   <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-neutral-100">
                     <img
-                      src={section.image.url}
+                      src={section.image?.url || section.items?.[0]?.image?.url}
                       alt={section.title || section.key}
                       className="size-full object-cover"
                     />
@@ -111,13 +111,18 @@ function HomeSectionsListPage() {
                   </div>
                 )}
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold text-foreground text-sm sm:text-base">
                       {section.title || section.key}
                     </span>
                     <span className="rounded bg-brand-cream px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-700">
                       {section.type}
                     </span>
+                    {section.items?.length > 0 && (
+                      <span className="rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[10px] font-bold">
+                        {section.items.length} cards
+                      </span>
+                    )}
                     <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-500">
                       Order: {section.displayOrder ?? 0}
                     </span>
